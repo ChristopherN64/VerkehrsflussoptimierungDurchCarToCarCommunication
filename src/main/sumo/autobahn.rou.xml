@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2024-09-12 20:14:06 by Eclipse SUMO netedit Version 1.20.0
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <!-- VTypes -->
+    <vType id="normal_car" maxSpeed="40.00" speedFactor="normc(0.90,0.20,0.20,2.00)" vClass="passenger" sigma="0.5"/>
+    <vType id="trailer" maxSpeed="30.00" speedFactor="normc(1.00,0.05,0.20,2.00)" vClass="trailer"/>
+    <!-- Vehicles, persons and containers (sorted by depart) -->
+    <flow id="normal" type="normal_car" begin="0.00" departLane="best" departSpeed="avg" color="0,235,255" from="entry" to="exit" end="5000.00" number="200"/>
+    <flow id="trailer" type="trailer" begin="0.00" departLane="best" departSpeed="avg" from="entry" to="exit" end="5000.00" number="200"/>
+</routes>
