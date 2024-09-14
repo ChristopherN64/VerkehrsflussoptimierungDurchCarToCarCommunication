@@ -1,6 +1,7 @@
 package main;
 
 import lombok.Data;
+import main.analytics.Analyser;
 import main.communication.CarToCarCommunication;
 import main.communication.CarToXMessage;
 import org.eclipse.sumo.libtraci.Vehicle;
@@ -13,14 +14,17 @@ import java.util.Queue;
 public class SimVehicle {
 
     private String vehicleId;
+    private VehicleState vehicleState;
     private Queue<CarToXMessage> messageQueue;
 
     public void simulateStep(){
         processMessages();
+        Analyser.updateVehicleResult(this);
     }
 
     public SimVehicle(String vehicleId){
         this.vehicleId = vehicleId;
+        this.vehicleState = VehicleState.NOT_SYNCHRONIZED;
         this.messageQueue = new LinkedList<>();
     }
 

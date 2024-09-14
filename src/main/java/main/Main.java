@@ -1,20 +1,25 @@
 package main;
 
-import org.eclipse.sumo.libtraci.*;
+import main.analytics.Analyser;
+import org.eclipse.sumo.libtraci.Simulation;
+import org.eclipse.sumo.libtraci.StringVector;
+import org.eclipse.sumo.libtraci.Vehicle;
 
 import java.util.HashMap;
 import java.util.HashSet;
 
 public class Main {
-    static final String SIMULATION_DELAY = "500";
-    static final int SIMULATION_STEPS = 50000;
+    static final String SIMULATION_DELAY = "200";
+    static final int SIMULATION_STEPS = 1000;
     public static HashMap<String,SimVehicle> vehicles = new HashMap<>();
+    public static int step;
 
     public static void main(String[] args) {
+
         initSimulation();
         // Schleife für die Simulationsschritte
         System.out.println("Simulation startet...");
-        for (int step = 0; step < SIMULATION_STEPS; step++) {
+        for (step = 0; step < SIMULATION_STEPS; step++) {
             Simulation.step();
 
             reinitVehicles();
@@ -23,6 +28,7 @@ public class Main {
         }
 
         // Simulation schließen
+        Analyser.printAnalytics();
         Simulation.close();
     }
 
@@ -39,7 +45,14 @@ public class Main {
             if(!vehicles.containsKey(vehicleId)) vehicles.put(vehicleId, new SimVehicle(vehicleId));
         });
         //Remove missing Vehicles
-        vehicles.values().removeIf(vehicle->!vehicleIds.contains(vehicle.getVehicleId()));
+        vehicles.values().removeIf(vehicle->{
+            if(!vehicleIds.contains(vehicle.getVehicleId())){
+                vehicle.setVehicleState(VehicleState.FINISHED);
+                Analyser.updateVehicleResult(vehicle);
+                return true;
+            }
+            return false;
+        });
     }
 
     //Initialisiert Simulation
