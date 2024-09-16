@@ -21,7 +21,7 @@
            lcSpeedGain="1.0"
            lcKeepRight="0.2"
            lcAssertive="1.0" />
-    <flow id="normal" type="normal_car" begin="0.00" departLane="best" departSpeed="avg" color="0,235,255" from="entry" to="exit" end="5000.00" number="10000"/>
+    <flow id="normal" type="normal_car" begin="0.00" departLane="best" departSpeed="avg" from="entry" to="exit" end="5000.00" number="10000"/>
 
 
     <vType id="truck_with_trailer"
@@ -43,5 +43,5 @@
            length="12.0"
            guiShape="truck" />
 
-    <flow id="truck_flow" type="truck_with_trailer" begin="0.00" departLane="best" departSpeed="avg" color="255,128,0" from="entry" to="exit" end="5000.00" number="1000"/>
+    <flow id="truck_flow" type="truck_with_trailer" begin="0.00" departLane="best" departSpeed="avg" from="entry" to="exit" end="5000.00" number="1000"/>
 </routes>
