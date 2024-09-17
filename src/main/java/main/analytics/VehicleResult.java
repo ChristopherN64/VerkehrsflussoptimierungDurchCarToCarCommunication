@@ -2,8 +2,8 @@ package main.analytics;
 
 import lombok.Data;
 import main.Main;
-import main.SimVehicle;
-import main.VehicleState;
+import main.vehicle.SimVehicle;
+import main.vehicle.VehicleState;
 
 import java.util.HashMap;
 

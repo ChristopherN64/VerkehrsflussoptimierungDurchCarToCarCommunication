@@ -1,4 +1,4 @@
-package main;
+package main.vehicle;
 
 public enum VehicleState {
     SYNCHRONIZED,

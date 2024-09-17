@@ -1,7 +1,7 @@
 package main.analytics;
 
-import main.SimVehicle;
-import main.VehicleState;
+import main.vehicle.SimVehicle;
+import main.vehicle.VehicleState;
 
 import java.util.*;
 
