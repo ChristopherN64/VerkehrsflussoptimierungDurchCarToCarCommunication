@@ -3,7 +3,7 @@ package main;
 import main.analytics.Analyser;
 import main.debugger.Debugger;
 import main.vehicle.SimVehicle;
-import main.vehicle.VehicleGrid;
+import main.vehicle.Cache;
 import org.eclipse.sumo.libtraci.*;
 
 public class Main {
@@ -14,12 +14,13 @@ public class Main {
     public static void main(String[] args) {
 
         initSimulation();
+        Cache.initMap();
         // Schleife für die Simulationsschritte
         System.out.println("Simulation startet...");
         for (step = 0; step < SIMULATION_STEPS; step++) {
             Simulation.step();
 
-            VehicleGrid.reinitVehicleGrid();
+            Cache.reinitVehicleGrid();
 
             simulateAllVehicles();
 
@@ -33,7 +34,7 @@ public class Main {
 
     //Simuliert alle Fahrzeuge auf der Karte
     private static void simulateAllVehicles() {
-        VehicleGrid.vehicles.values().forEach(SimVehicle::simulateStep);
+        Cache.vehicles.values().forEach(SimVehicle::simulateStep);
     }
 
 

@@ -7,6 +7,7 @@ import main.consensus.Consensus;
 import main.flocking.Flocking;
 import org.apache.commons.lang3.tuple.MutablePair;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 
 
@@ -19,9 +20,13 @@ public class SimVehicle {
     private VehicleState vehicleState;
     private LinkedList<CarToXMessage> messageQueue;
 
-    private Boolean isTraffic;
-    private int consensusIsTrafficCount;
-    private int consensusIsNoTrafficCount;
+    private double currentSpeed;
+    private double maxVehicleSpeed;
+    private double maxRoadSpeed;
+
+    private boolean isTraffic;
+    private int lastIsTrafficChange;
+    private HashMap<Boolean,Integer> trafficEstimationsSinceLastChange;
 
     public void simulateStep(){
         Consensus.simulateConsensus(this);
@@ -39,9 +44,9 @@ public class SimVehicle {
         this.messageQueue = new LinkedList<>();
         setVehicleState(VehicleState.NOT_SYNCHRONIZED);
 
-        this.isTraffic = null;
-        consensusIsTrafficCount=0;
-        consensusIsNoTrafficCount=0;
+        this.isTraffic = false;
+        this.lastIsTrafficChange = 0;
+        this.trafficEstimationsSinceLastChange = new HashMap<>();
     }
 
     public void setVehicleState(VehicleState vehicleState) {

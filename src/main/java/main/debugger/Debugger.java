@@ -1,22 +1,24 @@
 package main.debugger;
 
 import main.vehicle.SimVehicle;
-import main.vehicle.VehicleGrid;
+import main.vehicle.Cache;
 import org.eclipse.sumo.libtraci.TraCIColor;
 import org.eclipse.sumo.libtraci.Vehicle;
+
+import java.util.List;
 
 public class Debugger {
 
     public static void debugVehicleState() {
         Vehicle.getIDList().forEach(vehicleId -> {
-            SimVehicle simVehicle = VehicleGrid.vehicles.get(vehicleId);
+            SimVehicle simVehicle = Cache.vehicles.get(vehicleId);
             switch (simVehicle.getVehicleState()) {
                 case NOT_SYNCHRONIZED: {
                     Vehicle.setColor(vehicleId, new TraCIColor(0, 0, 255));
                     break;
                 }
                 case SYNCHRONIZED: {
-                    if (simVehicle.getIsTraffic()) Vehicle.setColor(vehicleId, new TraCIColor(0, 255, 0));
+                    if (simVehicle.isTraffic()) Vehicle.setColor(vehicleId, new TraCIColor(0, 255, 0));
                     else Vehicle.setColor(vehicleId, new TraCIColor(255, 0, 0));
                     break;
                 }
@@ -29,8 +31,8 @@ public class Debugger {
     }
 
     public static void debugGrid(){
-        VehicleGrid.vehicles.values().forEach(v-> Vehicle.setColor(v.getVehicleId(),new TraCIColor(0,255,0)));
-        if( VehicleGrid.vehicleGrid.get("0,0")!=null) VehicleGrid.vehicleGrid.get("0,0").forEach(v->
+        Cache.vehicles.values().forEach(v-> Vehicle.setColor(v.getVehicleId(),new TraCIColor(0,255,0)));
+        if( Cache.vehicleGrid.get("0,0")!=null) Cache.vehicleGrid.get("0,0").forEach(v->
                 Vehicle.setColor(v.getVehicleId(), new TraCIColor(0,0,255))
         );
     }

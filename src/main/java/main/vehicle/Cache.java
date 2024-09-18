@@ -2,34 +2,44 @@ package main.vehicle;
 
 import main.analytics.Analyser;
 import org.apache.commons.lang3.tuple.MutablePair;
-import org.eclipse.sumo.libtraci.TraCIPosition;
-import org.eclipse.sumo.libtraci.Vehicle;
+import org.eclipse.sumo.libtraci.*;
 
 import java.util.*;
 
-public class VehicleGrid {
+public class Cache {
     public static HashMap<String, SimVehicle> vehicles = new HashMap<>();
     public static Map<String, List<SimVehicle>> vehicleGrid = new HashMap<>();
+    public static HashMap<String,Double> roadSpeeds = new HashMap<>();
     public static double cellSizeX = 200;
     public static double cellSizeY = 20;
+
+
+    public static void initMap() {
+        roadSpeeds = new HashMap<>();
+        Edge.getIDList().forEach(edgeId-> roadSpeeds.put(edgeId,Lane.getMaxSpeed(Lane.getIDList().stream().filter(laneId->laneId.startsWith(edgeId)).findFirst().get())));
+    }
 
     //Synchronisiert die Fahrzeuge der Sumo-Simulation mit der Liste an Fahrzeugen
     public static void reinitVehicleGrid() {
         HashSet<String> vehicleIds = new HashSet<>(Vehicle.getIDList());
-        VehicleGrid.clearVehicleGrid();
+
+        Cache.clearVehicleGrid();
         //Add new Vehicles and preprocess
         vehicleIds.forEach(vehicleId->{
-            if(!VehicleGrid.vehicles.containsKey(vehicleId)) {
-                VehicleGrid.vehicles.put(vehicleId, new SimVehicle(vehicleId));
-            }
+            if(!Cache.vehicles.containsKey(vehicleId)) Cache.vehicles.put(vehicleId, new SimVehicle(vehicleId));
+
             TraCIPosition position = Vehicle.getPosition(vehicleId);
-            SimVehicle vehicle = VehicleGrid.vehicles.get(vehicleId);
+            SimVehicle vehicle = Cache.vehicles.get(vehicleId);
             vehicle.setPosition(new MutablePair<>(position.getX(),position.getY()));
-            VehicleGrid.addVehicle(vehicle);
+            Cache.addVehicle(vehicle);
+
+            vehicle.setCurrentSpeed(Vehicle.getSpeed(vehicleId));
+            vehicle.setMaxVehicleSpeed(Vehicle.getMaxSpeed(vehicleId));
+            vehicle.setMaxRoadSpeed(roadSpeeds.get(Vehicle.getRoadID(vehicleId)));
         });
 
         //Remove missing Vehicles
-        VehicleGrid.vehicles.values().removeIf(vehicle->{
+        Cache.vehicles.values().removeIf(vehicle->{
             if(!vehicleIds.contains(vehicle.getVehicleId())){
                 vehicle.setVehicleState(VehicleState.FINISHED);
                 Analyser.updateVehicleResult(vehicle);

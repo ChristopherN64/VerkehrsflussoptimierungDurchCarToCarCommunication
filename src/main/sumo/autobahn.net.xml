@@ -299,8 +299,8 @@
         <request index="2" response="000" foes="000" cont="0"/>
     </junction>
 
-    <connection from="E10" to="E11" fromLane="1" toLane="0" via=":J16_0_0" dir="s" state="M"/>
-    <connection from="E10" to="E11" fromLane="2" toLane="1" via=":J16_0_1" dir="s" state="M"/>
+    <connection from="E10" to="E11" fromLane="0" toLane="0" via=":J16_0_0" dir="s" state="M"/>
+    <connection from="E10" to="E11" fromLane="1" toLane="1" via=":J16_0_1" dir="s" state="M"/>
     <connection from="E11" to="E12" fromLane="0" toLane="0" via=":J17_0_0" dir="s" state="M"/>
     <connection from="E11" to="E12" fromLane="1" toLane="1" via=":J17_0_1" dir="s" state="M"/>
     <connection from="E11" to="E12" fromLane="1" toLane="2" via=":J17_0_2" dir="s" state="M"/>
