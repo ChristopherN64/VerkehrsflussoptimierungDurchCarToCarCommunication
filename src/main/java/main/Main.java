@@ -7,9 +7,9 @@ import main.vehicle.Cache;
 import org.eclipse.sumo.libtraci.*;
 
 public class Main {
-    public static final SimulationSzenario SIMULATION_SZENARIO = SimulationSzenario.ENDE_EINER_SPUR;
+    public static final SimulationSzenario SIMULATION_SZENARIO = SimulationSzenario.CIRCLE;
     public static final boolean SIMULATE_CONSENSUS = true;
-    public static final boolean SIMULATE_FLOCKING = false;
+    public static final boolean SIMULATE_FLOCKING = true;
     static final String SIMULATION_DELAY = "0";
     static final int SIMULATION_STEPS = 1000;
     public static int step;
@@ -54,6 +54,7 @@ public class Main {
                 "--delay", SIMULATION_DELAY,         // Delay von 500 ms
                 "-n", ".\\src\\main\\sumo\\" + SIMULATION_SZENARIO.folder + "\\network.net.xml", // Netz-Datei
                 "-r", ".\\src\\main\\sumo\\"+ SIMULATION_SZENARIO.folder +"\\route.rou.xml",  // Routen-Datei
+                "-a", ".\\src\\main\\sumo\\"+ SIMULATION_SZENARIO.folder +"\\additionals.add.xml",  // Routen-Datei
                 "--gui-settings-file", ".\\src\\main\\sumo\\"+ SIMULATION_SZENARIO.folder +"\\gui-settings.xml"
         }));
 

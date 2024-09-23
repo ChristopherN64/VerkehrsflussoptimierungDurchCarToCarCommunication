@@ -4,6 +4,7 @@ import lombok.Data;
 import main.Main;
 import main.vehicle.SimVehicle;
 import main.vehicle.VehicleState;
+import org.eclipse.sumo.libtraci.Vehicle;
 
 import java.util.HashMap;
 
@@ -14,6 +15,7 @@ public class VehicleResult {
     private int lastStep;
     private VehicleState lastVehicleState;
     private HashMap<VehicleState,Integer> vehicleStates;
+    private double traveledDistance;
 
     public VehicleResult(SimVehicle simVehicle) {
         this.vehicleId = simVehicle.getVehicleId();
@@ -21,7 +23,6 @@ public class VehicleResult {
         this.vehicleStates = new HashMap<>();
         addStep(simVehicle);
         this.lastVehicleState = simVehicle.getVehicleState();
-
     }
 
     public void addStep(SimVehicle simVehicle) {
@@ -29,5 +30,6 @@ public class VehicleResult {
         else vehicleStates.put(simVehicle.getVehicleState(),vehicleStates.get(simVehicle.getVehicleState())+1);
         this.lastStep = Main.step;
         this.lastVehicleState = simVehicle.getVehicleState();
+        this.traveledDistance = Vehicle.getDistance(vehicleId);
     }
 }

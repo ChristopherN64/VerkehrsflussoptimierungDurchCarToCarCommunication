@@ -89,11 +89,12 @@ public class SimVehicle {
             Vehicle.setParameter(vehicleId, "carFollowModel", "Krauss");
             Vehicle.setAccel(vehicleId,2.8);
             Vehicle.setDecel(vehicleId,4.7);
+            Vehicle.setEmergencyDecel(vehicleId,8);
             Vehicle.setParameter(vehicleId, "sigma", "0.6");
             Vehicle.setTau(vehicleId,1.2);
         }
         else if(Vehicle.getTypeID(vehicleId).startsWith("truck")){
-            Vehicle.setMinGap(vehicleId,3);
+            Vehicle.setMinGap(vehicleId,3.5);
             Vehicle.setLength(vehicleId,12);
             Vehicle.setMaxSpeed(vehicleId,generateClippedNormalDistribution(new Random(),25, 6, 20, 29));
             Vehicle.setSpeedFactor(vehicleId,generateClippedNormalDistribution(new Random(),0.90,0.10,0.80,1.10));
@@ -103,9 +104,10 @@ public class SimVehicle {
             Vehicle.setParameter(vehicleId, "lcSpeedGain", "0.7");
             Vehicle.setParameter(vehicleId, "lcKeepRight", "1.0");
             Vehicle.setParameter(vehicleId, "lcAssertive", "0.4");
-            Vehicle.setParameter(vehicleId, "carFollowModel", "IDM");
+            Vehicle.setParameter(vehicleId, "carFollowModel", "Krauss");
             Vehicle.setAccel(vehicleId,1.0);
             Vehicle.setDecel(vehicleId,3.5);
+            Vehicle.setEmergencyDecel(vehicleId,8);
             Vehicle.setParameter(vehicleId, "sigma", "0.5");
             Vehicle.setTau(vehicleId,2.0);
         }
