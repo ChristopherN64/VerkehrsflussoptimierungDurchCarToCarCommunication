@@ -7,7 +7,10 @@ import main.vehicle.Cache;
 import org.eclipse.sumo.libtraci.*;
 
 public class Main {
-    static final String SIMULATION_DELAY = "200";
+    public static final SimulationSzenario SIMULATION_SZENARIO = SimulationSzenario.ENDE_EINER_SPUR;
+    public static final boolean SIMULATE_CONSENSUS = true;
+    public static final boolean SIMULATE_FLOCKING = false;
+    static final String SIMULATION_DELAY = "0";
     static final int SIMULATION_STEPS = 1000;
     public static int step;
 
@@ -49,9 +52,9 @@ public class Main {
                 "sumo-gui",               // SUMO-GUI starten
                 "--start",                // Simulation automatisch starten
                 "--delay", SIMULATION_DELAY,         // Delay von 500 ms
-                "-n", ".\\src\\main\\sumo\\autobahn.net.xml", // Netz-Datei
-                "-r", ".\\src\\main\\sumo\\autobahn.rou.xml",  // Routen-Datei
-                "--gui-settings-file", ".\\src\\main\\sumo\\gui-settings.xml"
+                "-n", ".\\src\\main\\sumo\\" + SIMULATION_SZENARIO.folder + "\\network.net.xml", // Netz-Datei
+                "-r", ".\\src\\main\\sumo\\"+ SIMULATION_SZENARIO.folder +"\\route.rou.xml",  // Routen-Datei
+                "--gui-settings-file", ".\\src\\main\\sumo\\"+ SIMULATION_SZENARIO.folder +"\\gui-settings.xml"
         }));
 
         System.out.println("Simulations-Initialisierung abgeschlossen");

@@ -36,6 +36,10 @@ public class Cache {
             vehicle.setCurrentSpeed(Vehicle.getSpeed(vehicleId));
             vehicle.setMaxVehicleSpeed(Vehicle.getMaxSpeed(vehicleId));
             vehicle.setMaxRoadSpeed(roadSpeeds.get(Vehicle.getRoadID(vehicleId)));
+
+            double distance = Vehicle.getLeader(vehicleId).getSecond();
+            if(distance == -1) distance = Double.MAX_VALUE;
+            vehicle.setDistanceToLeadingVehicle(distance);
         });
 
         //Remove missing Vehicles

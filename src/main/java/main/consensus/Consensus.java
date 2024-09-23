@@ -14,9 +14,9 @@ public class Consensus {
     private static final double CHANGE_OF_OPINION_THRESHOLD = 0.5;
     private static final double CHANGE_OF_OPINION_COOLDOWN = 3;
 
-    private static final double MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC = 0.4;
-    private static final double NEIGHBOR_RADIUS_FOR_TRAFFIC = 20;
-    private static final double MINIMUM_NUMBER_OF_NEIGHBOURS = 5;
+    private static final double MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC = 0.5;
+    private static final double NEIGHBOR_RADIUS_FOR_TRAFFIC = 25;
+    private static final double MINIMUM_NUMBER_OF_NEIGHBOURS = 4;
 
     public static void simulateConsensus(SimVehicle vehicle) {
         if(vehicle.getVehicleState()==VehicleState.NOT_SYNCHRONIZED) vehicle.setVehicleState(VehicleState.SEARCHING_FOR_CONSENSUS);
@@ -37,7 +37,7 @@ public class Consensus {
     public static boolean calculateOwnTrafficEstimation(SimVehicle vehicle){
         double speedPercentage = vehicle.getCurrentSpeed() / Double.min(vehicle.getMaxVehicleSpeed(),vehicle.getMaxRoadSpeed());
         double numberOfNeighbours = Cache.getNeighbors(vehicle.getVehicleId(),NEIGHBOR_RADIUS_FOR_TRAFFIC).size();
-        return (speedPercentage < MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC || numberOfNeighbours > MINIMUM_NUMBER_OF_NEIGHBOURS);
+        return (speedPercentage < MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC && numberOfNeighbours > MINIMUM_NUMBER_OF_NEIGHBOURS);
     }
 
     public static HashMap<Boolean,Integer> getNeighbourTrafficEstimation(SimVehicle vehicle) {
