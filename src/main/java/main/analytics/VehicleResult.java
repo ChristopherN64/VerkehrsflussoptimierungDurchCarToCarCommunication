@@ -30,6 +30,6 @@ public class VehicleResult {
         else vehicleStates.put(simVehicle.getVehicleState(),vehicleStates.get(simVehicle.getVehicleState())+1);
         this.lastStep = Main.step;
         this.lastVehicleState = simVehicle.getVehicleState();
-        this.traveledDistance = Vehicle.getDistance(vehicleId);
+        if(simVehicle.getVehicleState()!=VehicleState.FINISHED) this.traveledDistance = Vehicle.getDistance(vehicleId);
     }
 }

@@ -6,17 +6,34 @@ import main.vehicle.SimVehicle;
 import main.vehicle.Cache;
 import org.eclipse.sumo.libtraci.*;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Main {
-    public static final SimulationSzenario SIMULATION_SZENARIO = SimulationSzenario.CIRCLE;
+    public static SimulationSzenario SIMULATION_SZENARIO;
+    public static String version = "1.2";
     public static final boolean SIMULATE_CONSENSUS = true;
-    public static final boolean SIMULATE_FLOCKING = true;
+    public static boolean SIMULATE_FLOCKING = true;
     static final String SIMULATION_DELAY = "0";
-    static final int SIMULATION_STEPS = 1000;
+    static final int SIMULATION_STEPS = 500;
     public static int step;
 
     public static void main(String[] args) {
+        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.CIRCLE,SimulationSzenario.ENDE_EINER_SPUR,SimulationSzenario.DREISPURIGE_AUTOBAHN);
 
-        initSimulation();
+        simulationSzenarios.forEach(simulationSzenario -> {
+            SIMULATION_SZENARIO=simulationSzenario;
+
+            SIMULATE_FLOCKING = false;
+            simulateSzenario(simulationSzenario);
+
+            SIMULATE_FLOCKING = true;
+            simulateSzenario(simulationSzenario);
+        });
+    }
+
+    public static void simulateSzenario(SimulationSzenario szenario){
+        initSimulation(szenario);
         Cache.initMap();
         // Schleife für die Simulationsschritte
         System.out.println("Simulation startet...");
@@ -31,8 +48,8 @@ public class Main {
         }
 
         // Simulation schließen
-        Analyser.printAnalytics();
         stopSimulationAndSumo();
+        Analyser.printAnalytics();
     }
 
     //Simuliert alle Fahrzeuge auf der Karte
@@ -42,7 +59,7 @@ public class Main {
 
 
     //Initialisiert Simulation
-    private static void initSimulation() {
+    private static void initSimulation(SimulationSzenario szenario) {
         System.out.println("Initialisiere Simulation");
 
         System.loadLibrary("libtracijni");
@@ -52,10 +69,11 @@ public class Main {
                 "sumo-gui",               // SUMO-GUI starten
                 "--start",                // Simulation automatisch starten
                 "--delay", SIMULATION_DELAY,         // Delay von 500 ms
-                "-n", ".\\src\\main\\sumo\\" + SIMULATION_SZENARIO.folder + "\\network.net.xml", // Netz-Datei
-                "-r", ".\\src\\main\\sumo\\"+ SIMULATION_SZENARIO.folder +"\\route.rou.xml",  // Routen-Datei
-                "-a", ".\\src\\main\\sumo\\"+ SIMULATION_SZENARIO.folder +"\\additionals.add.xml",  // Routen-Datei
-                "--gui-settings-file", ".\\src\\main\\sumo\\"+ SIMULATION_SZENARIO.folder +"\\gui-settings.xml"
+                "-n", ".\\src\\main\\sumo\\" + szenario.folder + "\\network.net.xml", // Netz-Datei
+                "-r", ".\\src\\main\\sumo\\"+ szenario.folder +"\\route.rou.xml",  // Routen-Datei
+                "-a", ".\\src\\main\\sumo\\"+ szenario.folder +"\\additionals.add.xml",  // Routen-Datei
+                "--gui-settings-file", ".\\src\\main\\sumo\\"+ szenario.folder +"\\gui-settings.xml",
+                "--quit-on-end"
         }));
 
         System.out.println("Simulations-Initialisierung abgeschlossen");
