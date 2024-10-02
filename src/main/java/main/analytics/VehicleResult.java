@@ -16,6 +16,7 @@ public class VehicleResult {
     private VehicleState lastVehicleState;
     private HashMap<VehicleState,Integer> vehicleStates;
     private double traveledDistance;
+    private int emergencyBrakes;
 
     public VehicleResult(SimVehicle simVehicle) {
         this.vehicleId = simVehicle.getVehicleId();
@@ -30,6 +31,7 @@ public class VehicleResult {
         else vehicleStates.put(simVehicle.getVehicleState(),vehicleStates.get(simVehicle.getVehicleState())+1);
         this.lastStep = Main.step;
         this.lastVehicleState = simVehicle.getVehicleState();
+        this.emergencyBrakes = simVehicle.getNumberOfEmergencyBraking();
         if(simVehicle.getVehicleState()!=VehicleState.FINISHED && simVehicle.getVehicleState()!=VehicleState.COLLIDED) this.traveledDistance = Vehicle.getDistance(vehicleId);
     }
 }

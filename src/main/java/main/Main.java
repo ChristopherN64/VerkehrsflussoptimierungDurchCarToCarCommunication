@@ -12,25 +12,25 @@ import java.util.List;
 
 public class Main {
     public static SimulationSzenario SIMULATION_SZENARIO;
-    public static String version = "2.0";
-    public static final boolean SIMULATE_CONSENSUS = true;
+    public static String version = "500 steps ohne Konsens";
+    public static final boolean SIMULATE_CONSENSUS = false;
     public static boolean SIMULATE_FLOCKING = true;
     static final String SIMULATION_DELAY = "0";
-    static final int SIMULATION_STEPS = 1000;
+    static final int SIMULATION_STEPS = 500;
     public static int step;
 
     public static void main(String[] args) {
-        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.BAUSTELLE);
+        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.values());
 
         simulationSzenarios.forEach(simulationSzenario -> {
             SIMULATION_SZENARIO=simulationSzenario;
 
-            /*
-            SIMULATE_FLOCKING = false;
-            simulateSzenario(simulationSzenario);
-             */
 
             SIMULATE_FLOCKING = false;
+            simulateSzenario(simulationSzenario);
+
+
+            SIMULATE_FLOCKING = true;
             simulateSzenario(simulationSzenario);
         });
     }

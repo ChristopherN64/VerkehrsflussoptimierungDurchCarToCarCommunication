@@ -29,6 +29,10 @@ public class SimVehicle {
     private double maxRoadSpeed;
 
     private int lane;
+    private int numberOfLanes;
+    private double distanceToLaneEnd;
+    private int routeIndex;
+
     private MutablePair<SimVehicle,Double> leaderWithDistance;
 
     private int numberOfEmergencyBraking;
@@ -39,6 +43,10 @@ public class SimVehicle {
 
     public void simulateStep(){
         if(Main.SIMULATE_CONSENSUS)  Consensus.simulateConsensus(this);
+        else {
+            setVehicleState(VehicleState.SYNCHRONIZED);
+            setTraffic(true);
+        }
 
         if(Main.SIMULATE_FLOCKING && isTraffic) Flocking.performFlocking(this);
 

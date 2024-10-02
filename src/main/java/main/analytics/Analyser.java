@@ -53,7 +53,7 @@ public class Analyser {
 
             // Wenn die Datei neu ist, Überschriften hinzufügen
             if (!fileExists) {
-                String header = "Version,Simuliertes Szenario,Flocking,Fertige Fahrzeuge,Kollisionen,Durchschnittliche Zeit,Durchschnittliche zurückgelegte Distanz in Metern";
+                String header = "Version,Simuliertes Szenario,Flocking,Fertige Fahrzeuge,Emergency Brakes,Kollisionen,Durchschnittliche Zeit,Durchschnittliche zurückgelegte Distanz in Metern";
                 writer.println(header);
             }
 
@@ -85,6 +85,7 @@ public class Analyser {
             sb.append(simuliertesSzenario).append(',');
             sb.append(flocking).append(',');
             sb.append(fertigeFahrzeuge).append(',');
+            sb.append(vehicleResults.values().stream().mapToInt(VehicleResult::getEmergencyBrakes).sum()).append(',');
             sb.append(Cache.collisions.size()).append(',');
             sb.append(durchschnittlicheZeit).append(',');
             sb.append(durchschnittlicheDistanz);

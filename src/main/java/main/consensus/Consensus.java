@@ -13,11 +13,12 @@ import java.util.List;
 
 public class Consensus {
     private static final double PERCENTAGE_OF_NEIGHBORS = 0.8;
-    private static final double NEIGHBOR_RADIUS_FOR_GOSSIP_ALGORITHM = 100;
+    private static final double NEIGHBOR_RADIUS_FOR_GOSSIP_ALGORITHM = 50;
     private static final double CHANGE_OF_OPINION_THRESHOLD = 0.5;
-    private static final double FLOCKING_DEACTIVATION_COOLDOWN = 10;
+    private static final double FLOCKING_DEACTIVATION_COOLDOWN = 30;
+    private static final double NEIGHBOUR_ESTIMATION_BULK_SIZE = 5;
 
-    private static final double MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC = 0.7;
+    public static final double  MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC = 0.6;
     private static final double NEIGHBOR_RADIUS_FOR_TRAFFIC = 35;
     private static final double MINIMUM_NUMBER_OF_NEIGHBOURS = 3;
 
@@ -38,7 +39,7 @@ public class Consensus {
     //Calculate own Traffic estimation based on speed and number of Neighbours in radius NEIGHBOR_RADIUS_FOR_TRAFFIC
     //Traffic estimation is true if one of them is greater than the threshold
     public static boolean calculateOwnTrafficEstimation(SimVehicle vehicle){
-        double speedPercentage = vehicle.getCurrentSpeed() / vehicle.getMaxVehicleSpeed();
+        double speedPercentage = vehicle.getCurrentSpeed() / vehicle.getDesiredSpeed();
         double numberOfNeighbours = Cache.getNeighbors(vehicle.getVehicleId(),NEIGHBOR_RADIUS_FOR_TRAFFIC).size();
         return (speedPercentage < MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC && numberOfNeighbours > MINIMUM_NUMBER_OF_NEIGHBOURS);
     }
@@ -57,9 +58,14 @@ public class Consensus {
     }
 
     public static void updateOwnTrafficEstimation(SimVehicle vehicle, boolean ownTrafficEstimation, HashMap<Boolean, Integer> neighbourEstimations) {
-        if(((double) neighbourEstimations.get(true) / (neighbourEstimations.get(false) + neighbourEstimations.get(true)) > CHANGE_OF_OPINION_THRESHOLD)) setIsTrafficWithCooldown(vehicle,true);
-        else if(((double) neighbourEstimations.get(false) / (neighbourEstimations.get(false) + neighbourEstimations.get(true)) > CHANGE_OF_OPINION_THRESHOLD)) setIsTrafficWithCooldown(vehicle,false);
-        else setIsTrafficWithCooldown(vehicle,ownTrafficEstimation);
+        //Put own estimation
+        putTrafficEstimationInBulk(vehicle,ownTrafficEstimation);
+        //Put Neighbour estimation
+        if(((double) neighbourEstimations.get(true) / (neighbourEstimations.get(false) + neighbourEstimations.get(true)) > CHANGE_OF_OPINION_THRESHOLD)) putTrafficEstimationInBulk(vehicle,true);
+        else if(((double) neighbourEstimations.get(false) / (neighbourEstimations.get(false) + neighbourEstimations.get(true)) > CHANGE_OF_OPINION_THRESHOLD)) putTrafficEstimationInBulk(vehicle,false);
+
+        setIsTrafficWithCooldown(vehicle);
+        if(Main.step % NEIGHBOUR_ESTIMATION_BULK_SIZE == 0) vehicle.setTrafficEstimationsSinceLastChange(new HashMap<>());
     }
 
     public static void sendMessageToRandomNumberOfNeighbors(String senderId, String data) {
@@ -69,17 +75,20 @@ public class Consensus {
 
     }
 
-    public static void setIsTrafficWithCooldown(SimVehicle vehicle,boolean isTraffic) {
-        vehicle.getTrafficEstimationsSinceLastChange().put(isTraffic, vehicle.getTrafficEstimationsSinceLastChange().getOrDefault(isTraffic, 0) + 1);
+    public static void setIsTrafficWithCooldown(SimVehicle vehicle) {
         boolean currentEstimation = vehicle.getTrafficEstimationsSinceLastChange().getOrDefault(true,0) > vehicle.getTrafficEstimationsSinceLastChange().getOrDefault(false,0);
         if(currentEstimation) setIsTraffic(vehicle,true);
-        else if(vehicle.getFlockingActivationStep() - Main.step > FLOCKING_DEACTIVATION_COOLDOWN) {
+        else if(Main.step - vehicle.getFlockingActivationStep() > FLOCKING_DEACTIVATION_COOLDOWN) {
             setIsTraffic(vehicle, false);
         }
     }
 
     public static void setIsTraffic(SimVehicle vehicle, boolean isTraffic) {
         vehicle.setTraffic(isTraffic);
-        vehicle.setTrafficEstimationsSinceLastChange(new HashMap<>());
+        if(isTraffic != vehicle.isTraffic()) vehicle.setTrafficEstimationsSinceLastChange(new HashMap<>());
+    }
+
+    public static void putTrafficEstimationInBulk(SimVehicle vehicle,boolean estimation) {
+        vehicle.getTrafficEstimationsSinceLastChange().put(estimation, vehicle.getTrafficEstimationsSinceLastChange().getOrDefault(estimation, 0) + 1);
     }
 }
