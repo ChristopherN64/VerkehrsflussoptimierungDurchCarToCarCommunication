@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2024-09-23 20:31:27 by Eclipse SUMO netedit Version 1.20.0
+<!-- generated on 2024-09-25 19:07:01 by Eclipse SUMO netedit Version 1.20.0
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/neteditConfiguration.xsd">
 
     <input>
@@ -37,7 +37,8 @@
     <location netOffset="0.00,0.00" convBoundary="-29.36,-297.38,662.45,203.08" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="!"/>
 
     <edge id=":J1_0" function="internal">
-        <lane id=":J1_0_0" index="0" speed="13.89" length="0.33" shape="54.27,159.36 54.46,159.63"/>
+        <lane id=":J1_0_0" index="0" speed="13.89" length="0.29" shape="56.91,157.55 57.06,157.76"/>
+        <lane id=":J1_0_1" index="1" speed="13.89" length="0.29" shape="54.27,159.36 54.46,159.63"/>
     </edge>
     <edge id=":J10_0" function="internal">
         <lane id=":J10_0_0" index="0" speed="13.89" length="0.10" shape="396.28,-292.55 396.28,-292.55"/>
@@ -165,8 +166,9 @@
     </edge>
 
     <junction id="J0" type="dead_end" x="165.49" y="203.08" incLanes="" intLanes="" shape="165.49,203.08 165.05,199.91"/>
-    <junction id="J1" type="priority" x="53.05" y="160.41" incLanes="E14_0 E14_1" intLanes=":J1_0_0" shape="53.16,160.56 58.36,156.83 58.23,156.64 52.95,160.27">
-        <request index="0" response="0" foes="0" cont="0"/>
+    <junction id="J1" type="priority" x="53.05" y="160.41" incLanes="E14_0 E14_1" intLanes=":J1_0_0 :J1_0_1" shape="53.16,160.56 58.36,156.83 58.23,156.64 52.95,160.27">
+        <request index="0" response="00" foes="00" cont="0"/>
+        <request index="1" response="00" foes="00" cont="0"/>
     </junction>
     <junction id="J10" type="priority" x="396.16" y="-297.35" incLanes="E8_0 E8_1" intLanes=":J10_0_0 :J10_0_1" shape="396.32,-290.95 396.16,-297.35 396.32,-290.95">
         <request index="0" response="00" foes="00" cont="0"/>
@@ -236,7 +238,8 @@
     <connection from="E12" to="E13" fromLane="1" toLane="1" via=":J14_0_1" dir="s" state="M"/>
     <connection from="E13" to="E14" fromLane="0" toLane="0" via=":J15_0_0" dir="s" state="M"/>
     <connection from="E13" to="E14" fromLane="1" toLane="1" via=":J15_0_1" dir="s" state="M"/>
-    <connection from="E14" to="E15" fromLane="1" toLane="1" via=":J1_0_0" dir="s" state="M"/>
+    <connection from="E14" to="E15" fromLane="0" toLane="0" via=":J1_0_0" dir="s" state="M"/>
+    <connection from="E14" to="E15" fromLane="1" toLane="1" via=":J1_0_1" dir="s" state="M"/>
     <connection from="E15" to="E1" fromLane="0" toLane="0" via=":J2_0_0" dir="s" state="M"/>
     <connection from="E15" to="E1" fromLane="1" toLane="1" via=":J2_0_1" dir="s" state="M"/>
     <connection from="E2" to="E3" fromLane="0" toLane="0" via=":J4_0_0" dir="s" state="M"/>
@@ -257,7 +260,8 @@
     <connection from="E9" to="E10" fromLane="1" toLane="1" via=":J11_0_1" dir="s" state="M"/>
     <connection from="entry" to="E2" fromLane="0" toLane="2" via=":J3_2_0" dir="s" state="M"/>
 
-    <connection from=":J1_0" to="E15" fromLane="0" toLane="1" dir="s" state="M"/>
+    <connection from=":J1_0" to="E15" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":J1_0" to="E15" fromLane="1" toLane="1" dir="s" state="M"/>
     <connection from=":J10_0" to="E9" fromLane="0" toLane="0" dir="s" state="M"/>
     <connection from=":J10_0" to="E9" fromLane="1" toLane="1" dir="s" state="M"/>
     <connection from=":J11_0" to="E10" fromLane="0" toLane="0" dir="s" state="M"/>

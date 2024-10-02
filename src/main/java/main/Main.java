@@ -4,6 +4,7 @@ import main.analytics.Analyser;
 import main.debugger.Debugger;
 import main.vehicle.SimVehicle;
 import main.vehicle.Cache;
+import main.vehicle.VehicleState;
 import org.eclipse.sumo.libtraci.*;
 
 import java.util.LinkedList;
@@ -11,23 +12,25 @@ import java.util.List;
 
 public class Main {
     public static SimulationSzenario SIMULATION_SZENARIO;
-    public static String version = "1.2";
+    public static String version = "2.0";
     public static final boolean SIMULATE_CONSENSUS = true;
     public static boolean SIMULATE_FLOCKING = true;
     static final String SIMULATION_DELAY = "0";
-    static final int SIMULATION_STEPS = 500;
+    static final int SIMULATION_STEPS = 1000;
     public static int step;
 
     public static void main(String[] args) {
-        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.CIRCLE,SimulationSzenario.ENDE_EINER_SPUR,SimulationSzenario.DREISPURIGE_AUTOBAHN);
+        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.BAUSTELLE);
 
         simulationSzenarios.forEach(simulationSzenario -> {
             SIMULATION_SZENARIO=simulationSzenario;
 
+            /*
             SIMULATE_FLOCKING = false;
             simulateSzenario(simulationSzenario);
+             */
 
-            SIMULATE_FLOCKING = true;
+            SIMULATE_FLOCKING = false;
             simulateSzenario(simulationSzenario);
         });
     }
@@ -69,10 +72,7 @@ public class Main {
                 "sumo-gui",               // SUMO-GUI starten
                 "--start",                // Simulation automatisch starten
                 "--delay", SIMULATION_DELAY,         // Delay von 500 ms
-                "-n", ".\\src\\main\\sumo\\" + szenario.folder + "\\network.net.xml", // Netz-Datei
-                "-r", ".\\src\\main\\sumo\\"+ szenario.folder +"\\route.rou.xml",  // Routen-Datei
-                "-a", ".\\src\\main\\sumo\\"+ szenario.folder +"\\additionals.add.xml",  // Routen-Datei
-                "--gui-settings-file", ".\\src\\main\\sumo\\"+ szenario.folder +"\\gui-settings.xml",
+                "-c", ".\\src\\main\\sumo\\" + szenario.folder + "\\sumo_setting.sumocfg",  // Konfigurationsdatei
                 "--quit-on-end"
         }));
 

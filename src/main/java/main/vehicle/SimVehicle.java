@@ -24,19 +24,25 @@ public class SimVehicle {
     private LinkedList<CarToXMessage> messageQueue;
 
     private double currentSpeed;
+    private double targetSpeed;
     private double maxVehicleSpeed;
     private double maxRoadSpeed;
 
-    private double distanceToLeadingVehicle;
+    private int lane;
+    private MutablePair<SimVehicle,Double> leaderWithDistance;
+
+    private int numberOfEmergencyBraking;
 
     private boolean isTraffic;
-    private int lastIsTrafficChange;
+    private int flockingActivationStep;
     private HashMap<Boolean,Integer> trafficEstimationsSinceLastChange;
 
     public void simulateStep(){
         if(Main.SIMULATE_CONSENSUS)  Consensus.simulateConsensus(this);
 
-        if(Main.SIMULATE_FLOCKING) Flocking.simulateFlocking(this);
+        if(Main.SIMULATE_FLOCKING && isTraffic) Flocking.performFlocking(this);
+
+        if(!isTraffic) initVehicleBehavior();
 
         clearMessages();
         Analyser.updateVehicleResult(this);
@@ -50,8 +56,9 @@ public class SimVehicle {
         setVehicleState(VehicleState.NOT_SYNCHRONIZED);
 
         this.isTraffic = false;
-        this.lastIsTrafficChange = 0;
+        this.flockingActivationStep = 0;
         this.trafficEstimationsSinceLastChange = new HashMap<>();
+        numberOfEmergencyBraking=0;
 
         initVehicleBehavior();
     }
@@ -68,6 +75,7 @@ public class SimVehicle {
     public void setTraffic(boolean traffic) {
         if(this.isTraffic == traffic) return;
         this.isTraffic = traffic;
+        if(this.isTraffic) flockingActivationStep = Main.step;
         if(!this.isTraffic) initVehicleBehavior();
     }
 
@@ -121,5 +129,13 @@ public class SimVehicle {
         } while (value < min || value > max); // Beschneiden, wenn außerhalb des Bereichs
 
         return value;
+    }
+
+    public double getDesiredSpeed() {
+        return Double.min(maxVehicleSpeed,maxRoadSpeed);
+    }
+
+    public void emergencyBrake() {
+        this.numberOfEmergencyBraking++;
     }
 }

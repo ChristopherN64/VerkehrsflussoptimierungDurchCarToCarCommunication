@@ -1,6 +1,7 @@
 package main.analytics;
 
 import main.Main;
+import main.vehicle.Cache;
 import main.vehicle.SimVehicle;
 import main.vehicle.VehicleState;
 
@@ -18,7 +19,7 @@ public class Analyser {
     public static void printAnalytics(){
         System.out.println("Simuliertes Szenario: "+ Main.SIMULATION_SZENARIO);
         System.out.println("Flocking: "+ Main.SIMULATE_FLOCKING);
-        /*
+
         Arrays.stream(VehicleState.values()).forEach(vehicleState -> {
             vehicleResults.values().stream().map(VehicleResult::getVehicleStates).map(vehicleStates->vehicleStates.get(vehicleState)).filter(Objects::nonNull).mapToInt(Integer::intValue).average().ifPresent(avg->{
                 System.out.println("avg:" + vehicleState+" "+avg);
@@ -33,7 +34,6 @@ public class Analyser {
 
         });
 
-         */
         System.out.println("Fertige Fahrzeuge:"+vehicleResults.values().stream().filter(vehicleResult -> vehicleResult.getLastVehicleState() == VehicleState.FINISHED).count());
         System.out.println("Durchschnittliche Zeit:"+vehicleResults.values().stream().map(vehicleResult -> vehicleResult.getLastStep()-vehicleResult.getCreationStep()).mapToInt(Integer::intValue).average().getAsDouble());
         System.out.println("Durchschnittliche Zurückgelegte Distanz in Metern:"+vehicleResults.values().stream().map(VehicleResult::getTraveledDistance).filter(d->d>0).mapToDouble(Double::doubleValue).average().getAsDouble());
@@ -53,7 +53,7 @@ public class Analyser {
 
             // Wenn die Datei neu ist, Überschriften hinzufügen
             if (!fileExists) {
-                String header = "Version,Simuliertes Szenario,Flocking,Fertige Fahrzeuge,Durchschnittliche Zeit,Durchschnittliche zurückgelegte Distanz in Metern";
+                String header = "Version,Simuliertes Szenario,Flocking,Fertige Fahrzeuge,Kollisionen,Durchschnittliche Zeit,Durchschnittliche zurückgelegte Distanz in Metern";
                 writer.println(header);
             }
 
@@ -85,6 +85,7 @@ public class Analyser {
             sb.append(simuliertesSzenario).append(',');
             sb.append(flocking).append(',');
             sb.append(fertigeFahrzeuge).append(',');
+            sb.append(Cache.collisions.size()).append(',');
             sb.append(durchschnittlicheZeit).append(',');
             sb.append(durchschnittlicheDistanz);
 

@@ -9,9 +9,10 @@ import java.util.*;
 public class Cache {
     public static HashMap<String, SimVehicle> vehicles = new HashMap<>();
     public static Map<String, List<SimVehicle>> vehicleGrid = new HashMap<>();
+    public static List<TraCICollision> collisions = new ArrayList<>();
     public static HashMap<String,Double> roadSpeeds = new HashMap<>();
-    public static double cellSizeX = 200;
-    public static double cellSizeY = 20;
+    public static double cellSizeX = 100;
+    public static double cellSizeY = 100;
 
 
     public static void initMap() {
@@ -33,24 +34,46 @@ public class Cache {
             vehicle.setPosition(new MutablePair<>(position.getX(),position.getY()));
             Cache.addVehicle(vehicle);
 
-            vehicle.setCurrentSpeed(Vehicle.getSpeed(vehicleId));
+            double currentSpeed = Vehicle.getSpeed(vehicleId);
+            vehicle.setCurrentSpeed(currentSpeed);
+            vehicle.setTargetSpeed(currentSpeed);
             vehicle.setMaxVehicleSpeed(Vehicle.getMaxSpeed(vehicleId));
             vehicle.setMaxRoadSpeed(roadSpeeds.get(Vehicle.getRoadID(vehicleId)));
+            vehicle.setLane(Vehicle.getLaneIndex(vehicleId));
 
-            double distance = Vehicle.getLeader(vehicleId).getSecond();
-            if(distance == -1) distance = Double.MAX_VALUE;
-            vehicle.setDistanceToLeadingVehicle(distance);
+            StringDoublePair leaderWithDistance = Vehicle.getLeader(vehicleId);
+            double distance = leaderWithDistance.getSecond();
+            if(distance != -1) vehicle.setLeaderWithDistance(new MutablePair<>(Cache.vehicles.get(leaderWithDistance.getFirst()),distance));
+            else vehicle.setLeaderWithDistance(null);
         });
 
-        //Remove missing Vehicles
+        //Remove collided Vehicles
+        Simulation.getCollisions().forEach(traCICollision -> {
+            Cache.collisions.add(traCICollision);
+            Cache.removeVehicle(Cache.vehicles.get(traCICollision.getCollider()), VehicleState.COLLIDED);
+            Cache.removeVehicle(Cache.vehicles.get(traCICollision.getVictim()), VehicleState.COLLIDED);
+        });
+
+        //Remove finished Vehicles
         Cache.vehicles.values().removeIf(vehicle->{
             if(!vehicleIds.contains(vehicle.getVehicleId())){
-                vehicle.setVehicleState(VehicleState.FINISHED);
-                Analyser.updateVehicleResult(vehicle);
-                return true;
+                return setVehicleRemoved(vehicle, VehicleState.FINISHED);
             }
             return false;
         });
+    }
+
+    public static void removeVehicle(SimVehicle vehicle,VehicleState vehicleState){
+        if(Cache.vehicles.values().remove(vehicle)){
+            setVehicleRemoved(vehicle,vehicleState);
+        }
+
+    }
+
+    public static boolean setVehicleRemoved(SimVehicle vehicle,VehicleState vehicleState) {
+        vehicle.setVehicleState(vehicleState);
+        Analyser.updateVehicleResult(vehicle);
+        return true;
     }
 
     public static String getCellKey(double x, double y) {
@@ -69,8 +92,8 @@ public class Cache {
         vehicleGrid = new HashMap<>();
     }
 
-    public static List<SimVehicle> getNeighbors(String vehicleId, double radius) {
-        List<SimVehicle> neighbors = new ArrayList<>();
+    public static List<MutablePair<SimVehicle,Double>> getNeighbors(String vehicleId, double radius) {
+        List<MutablePair<SimVehicle,Double>> neighbors = new ArrayList<>();
         SimVehicle vehicle = vehicles.get(vehicleId);
         String cellKey = getCellKey(vehicle.getPosition().getLeft(), vehicle.getPosition().getRight());
         String[] keyParts = cellKey.split(",");
@@ -83,8 +106,11 @@ public class Cache {
                 String neighborKey = (cellX + dx) + "," + (cellY + dy);
                 if (vehicleGrid.containsKey(neighborKey)) {
                     for (SimVehicle neighbor : vehicleGrid.get(neighborKey)) {
-                        if (calculateDistance(vehicle, neighbor) <= radius) {
-                            neighbors.add(neighbor);
+                        if(!neighbor.getVehicleId().equals(vehicleId)){
+                            double distance = calculateDistance(vehicle, neighbor);
+                            if (distance <= radius) {
+                                neighbors.add(new MutablePair<>(neighbor, distance));
+                            }
                         }
                     }
                 }
