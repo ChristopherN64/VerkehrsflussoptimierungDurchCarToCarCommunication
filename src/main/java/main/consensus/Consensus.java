@@ -18,7 +18,7 @@ public class Consensus {
     private static final double FLOCKING_DEACTIVATION_COOLDOWN = 30;
     private static final double NEIGHBOUR_ESTIMATION_BULK_SIZE = 5;
 
-    public static final double  MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC = 0.6;
+    public static final double  MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC = 0.9;
     private static final double NEIGHBOR_RADIUS_FOR_TRAFFIC = 35;
     private static final double MINIMUM_NUMBER_OF_NEIGHBOURS = 3;
 

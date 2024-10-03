@@ -11,6 +11,10 @@ import java.util.*;
 public class Analyser {
     public static HashMap<String,VehicleResult> vehicleResults = new HashMap<>();
 
+    public static void init(){
+        vehicleResults = new HashMap<>();
+    }
+
     public static void updateVehicleResult(SimVehicle vehicle){
         if(!vehicleResults.containsKey(vehicle.getVehicleId())) vehicleResults.put(vehicle.getVehicleId(),new VehicleResult(vehicle));
         else vehicleResults.get(vehicle.getVehicleId()).addStep(vehicle);

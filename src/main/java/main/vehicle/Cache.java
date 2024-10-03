@@ -18,6 +18,9 @@ public class Cache {
     public static void initMap() {
         roadSpeeds = new HashMap<>();
         Edge.getIDList().forEach(edgeId-> roadSpeeds.put(edgeId,Lane.getMaxSpeed(Lane.getIDList().stream().filter(laneId->laneId.startsWith(edgeId)).findFirst().get())));
+        vehicles = new HashMap<>();
+        vehicleGrid = new HashMap<>();
+        collisions = new ArrayList<>();
     }
 
     //Synchronisiert die Fahrzeuge der Sumo-Simulation mit der Liste an Fahrzeugen

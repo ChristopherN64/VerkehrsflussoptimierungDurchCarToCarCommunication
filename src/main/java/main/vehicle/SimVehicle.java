@@ -94,20 +94,20 @@ public class SimVehicle {
         if(Vehicle.getTypeID(vehicleId).startsWith("normal")){
             Vehicle.setMinGap(vehicleId,2.7);
             //generateClippedNormalDistribution(new Random(),120, 30, 100, 180)
-            Vehicle.setMaxSpeed(vehicleId, generateClippedNormalDistribution(new Random(),33, 8.3, 27.3, 50));
+            Vehicle.setMaxSpeed(vehicleId, generateClippedNormalDistribution(new Random(),33, 12.3, 24.3, 50));
             Vehicle.setSpeedFactor(vehicleId,generateClippedNormalDistribution(new Random(),1.2, 0.15, 0.7, 1.5));
             Vehicle.setParameter(vehicleId, "laneChangeModel", "LC2013");
             Vehicle.setParameter(vehicleId, "lcStrategic", "0.8");
             Vehicle.setParameter(vehicleId, "lcCooperative", "0.2");
-            Vehicle.setParameter(vehicleId, "lcSpeedGain", "0.3");
-            Vehicle.setParameter(vehicleId, "lcKeepRight", "0.7");
+            Vehicle.setParameter(vehicleId, "lcSpeedGain", "0.5");
+            Vehicle.setParameter(vehicleId, "lcKeepRight", "0.5");
             Vehicle.setParameter(vehicleId, "lcAssertive", "0.7");
             Vehicle.setParameter(vehicleId, "carFollowModel", "Krauss");
             Vehicle.setAccel(vehicleId,2.8);
             Vehicle.setDecel(vehicleId,4.7);
             Vehicle.setEmergencyDecel(vehicleId,8);
-            Vehicle.setParameter(vehicleId, "sigma", "0.6");
-            Vehicle.setTau(vehicleId,1.2);
+            Vehicle.setParameter(vehicleId, "sigma", "0.8");
+            Vehicle.setTau(vehicleId,1.4);
         }
         else if(Vehicle.getTypeID(vehicleId).startsWith("truck")){
             Vehicle.setMinGap(vehicleId,3.5);

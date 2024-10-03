@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Main {
     public static SimulationSzenario SIMULATION_SZENARIO;
-    public static String version = "500 steps ohne Konsens";
+    public static String version = "500 steps ohne Konsens mit Alignment";
     public static final boolean SIMULATE_CONSENSUS = false;
     public static boolean SIMULATE_FLOCKING = true;
     static final String SIMULATION_DELAY = "0";
@@ -20,15 +20,15 @@ public class Main {
     public static int step;
 
     public static void main(String[] args) {
-        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.values());
+        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.BAUSTELLE);
 
         simulationSzenarios.forEach(simulationSzenario -> {
             SIMULATION_SZENARIO=simulationSzenario;
 
-
+            /*
             SIMULATE_FLOCKING = false;
             simulateSzenario(simulationSzenario);
-
+             */
 
             SIMULATE_FLOCKING = true;
             simulateSzenario(simulationSzenario);
@@ -38,6 +38,7 @@ public class Main {
     public static void simulateSzenario(SimulationSzenario szenario){
         initSimulation(szenario);
         Cache.initMap();
+        Analyser.init();
         // Schleife für die Simulationsschritte
         System.out.println("Simulation startet...");
         for (step = 0; step < SIMULATION_STEPS; step++) {
@@ -47,7 +48,7 @@ public class Main {
 
             simulateAllVehicles();
 
-            Debugger.debugVehicleState();
+            Debugger.debugSeparation();
         }
 
         // Simulation schließen
