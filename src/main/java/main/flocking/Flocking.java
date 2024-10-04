@@ -29,9 +29,9 @@ public class Flocking {
 
 
     //Konstanten für Alignment
-    public static int ALIGNMENT_NEIGHBOUR_RADIUS = 70;
-    public static double seperationPercent1 = 0.9;
-    public static double seperationPercent2 = 0.7;
+    public static int ALIGNMENT_NEIGHBOUR_RADIUS = 120;
+    public static double seperationPercent1 = 0.6;
+    public static double seperationPercent2 = 0.6;
 
 
 
@@ -78,12 +78,10 @@ public class Flocking {
 
 
     private static double applyAlignment(SimVehicle vehicle) {
-        double currentSpeed = vehicle.getCurrentSpeed();
         List<MutablePair<SimVehicle,Double>> neighbours = Cache.getNeighbors(vehicle.getVehicleId(),ALIGNMENT_NEIGHBOUR_RADIUS);
         OptionalDouble avgNeighbourSpeed = neighbours.stream().mapToDouble(mp->mp.getLeft().getTargetSpeed()).average();
-        double newTargetSpeed = -1;
-        if(avgNeighbourSpeed.isPresent()) {newTargetSpeed = avgNeighbourSpeed.getAsDouble();}
-        return newTargetSpeed;
+        if(avgNeighbourSpeed.isPresent()) return avgNeighbourSpeed.getAsDouble();
+        return -1;
     }
 
 

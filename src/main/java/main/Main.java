@@ -25,17 +25,8 @@ public class Main {
 
         simulationSzenarios.forEach(simulationSzenario -> {
             SIMULATION_SZENARIO=simulationSzenario;
-
-            Flocking.ALIGNMENT_NEIGHBOUR_RADIUS = 100;
-            Flocking.seperationPercent1 = 1;
-            Flocking.seperationPercent2 = 0.7;
-
-            for(Flocking.ALIGNMENT_NEIGHBOUR_RADIUS = 100; Flocking.ALIGNMENT_NEIGHBOUR_RADIUS < 200; Flocking.ALIGNMENT_NEIGHBOUR_RADIUS+=20){
-                for( Flocking.seperationPercent1 = 0.6; Flocking.seperationPercent1 <=1; Flocking.seperationPercent1 += 0.1){
-                        SIMULATE_FLOCKING = true;
-                        simulateSzenario(simulationSzenario);
-                }
-            }
+            SIMULATE_FLOCKING = true;
+            simulateSzenario(simulationSzenario);
         });
     }
 
