@@ -1,11 +1,13 @@
 package main.analytics;
 
 import main.Main;
+import main.flocking.Flocking;
 import main.vehicle.Cache;
 import main.vehicle.SimVehicle;
 import main.vehicle.VehicleState;
 
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class Analyser {
@@ -57,7 +59,7 @@ public class Analyser {
 
             // Wenn die Datei neu ist, Überschriften hinzufügen
             if (!fileExists) {
-                String header = "Version,Simuliertes Szenario,Flocking,Fertige Fahrzeuge,Emergency Brakes,Kollisionen,Durchschnittliche Zeit,Durchschnittliche zurückgelegte Distanz in Metern";
+                String header = "Version,Timestamp,Simuliertes Szenario,Steps,Flocking,Fertige Fahrzeuge,Emergency Brakes,Kollisionen,avg Zeit,avg Distanz in Metern,UNDER_DISTANCE,IN_DISTANCE,OUT_OF_DISTANCE,NO_LEADER,Flocking Config";
                 writer.println(header);
             }
 
@@ -86,13 +88,22 @@ public class Analyser {
             // Datenzeile erstellen
             StringBuilder sb = new StringBuilder();
             sb.append(version).append(',');
+            sb.append(LocalDateTime.now()).append(',');
             sb.append(simuliertesSzenario).append(',');
+            sb.append(Main.step).append(',');
             sb.append(flocking).append(',');
             sb.append(fertigeFahrzeuge).append(',');
             sb.append(vehicleResults.values().stream().mapToInt(VehicleResult::getEmergencyBrakes).sum()).append(',');
             sb.append(Cache.collisions.size()).append(',');
             sb.append(durchschnittlicheZeit).append(',');
-            sb.append(durchschnittlicheDistanz);
+            sb.append(durchschnittlicheDistanz).append(',');
+            sb.append(getAnalysisOfState(VehicleState.UNDER_DISTANCE)).append(',');
+            sb.append(getAnalysisOfState(VehicleState.IN_DISTANCE)).append(',');
+            sb.append(getAnalysisOfState(VehicleState.OUT_OF_DISTANCE)).append(',');
+            sb.append(getAnalysisOfState(VehicleState.NO_LEADER)).append(',');
+            sb.append("Radius: "+ Flocking.ALIGNMENT_NEIGHBOUR_RADIUS+" "+"Spe1: "+Flocking.seperationPercent1+" Sep2: "+Flocking.seperationPercent2);
+
+
 
             // Datenzeile schreiben
             writer.println(sb.toString());
@@ -101,6 +112,14 @@ public class Analyser {
         } catch (IOException e) {
             System.out.println("Fehler beim Schreiben der CSV-Datei: " + e.getMessage());
         }
+    }
+
+    public static String getAnalysisOfState(VehicleState vehicleState){
+        String ret = "";
+        ret+= "min:"+ vehicleResults.values().stream().map(VehicleResult::getVehicleStates).map(vehicleStates->vehicleStates.get(vehicleState)).filter(Objects::nonNull).min(Integer::compareTo).orElse(-1);
+        ret+= "  avg:"+ vehicleResults.values().stream().map(VehicleResult::getVehicleStates).map(vehicleStates->vehicleStates.get(vehicleState)).filter(Objects::nonNull).mapToInt(Integer::intValue).average().orElse(-1);
+        ret+= "  max:"+ vehicleResults.values().stream().map(VehicleResult::getVehicleStates).map(vehicleStates->vehicleStates.get(vehicleState)).filter(Objects::nonNull).max(Integer::compareTo).orElse(-1);
+        return ret;
     }
 
 

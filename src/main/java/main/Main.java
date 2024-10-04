@@ -2,6 +2,7 @@ package main;
 
 import main.analytics.Analyser;
 import main.debugger.Debugger;
+import main.flocking.Flocking;
 import main.vehicle.SimVehicle;
 import main.vehicle.Cache;
 import main.vehicle.VehicleState;
@@ -20,18 +21,21 @@ public class Main {
     public static int step;
 
     public static void main(String[] args) {
-        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.BAUSTELLE);
+        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.DREISPURIGE_AUTOBAHN);
 
         simulationSzenarios.forEach(simulationSzenario -> {
             SIMULATION_SZENARIO=simulationSzenario;
 
-            /*
-            SIMULATE_FLOCKING = false;
-            simulateSzenario(simulationSzenario);
-             */
+            Flocking.ALIGNMENT_NEIGHBOUR_RADIUS = 100;
+            Flocking.seperationPercent1 = 1;
+            Flocking.seperationPercent2 = 0.7;
 
-            SIMULATE_FLOCKING = true;
-            simulateSzenario(simulationSzenario);
+            for(Flocking.ALIGNMENT_NEIGHBOUR_RADIUS = 100; Flocking.ALIGNMENT_NEIGHBOUR_RADIUS < 200; Flocking.ALIGNMENT_NEIGHBOUR_RADIUS+=20){
+                for( Flocking.seperationPercent1 = 0.6; Flocking.seperationPercent1 <=1; Flocking.seperationPercent1 += 0.1){
+                        SIMULATE_FLOCKING = true;
+                        simulateSzenario(simulationSzenario);
+                }
+            }
         });
     }
 

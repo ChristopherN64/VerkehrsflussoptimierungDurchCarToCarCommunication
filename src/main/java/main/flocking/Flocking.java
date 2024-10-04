@@ -8,6 +8,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.eclipse.sumo.libtraci.Vehicle;
 
 import java.util.List;
+import java.util.OptionalDouble;
 
 public class Flocking {
 
@@ -28,8 +29,9 @@ public class Flocking {
 
 
     //Konstanten für Alignment
-    private static final int ALIGNMENT_NEIGHBOUR_RADIUS = 50;
-
+    public static int ALIGNMENT_NEIGHBOUR_RADIUS = 70;
+    public static double seperationPercent1 = 0.9;
+    public static double seperationPercent2 = 0.7;
 
 
 
@@ -48,15 +50,29 @@ public class Flocking {
 
             // Alignment durchführen
             double newVehicleSpeedFromAlignment;
-            //newVehicleSpeedFromAlignment = applyAlignment(vehicle);
+            newVehicleSpeedFromAlignment = applyAlignment(vehicle);
+            if(newVehicleSpeedFromAlignment==-1) newVehicleSpeedFromAlignment = newVehicleSpeedFromSeparation;
 
             // Cohesion durchführen (Spurwechsel)
             //applyCohesion();
 
 
+            double newTargetSpeed = newVehicleSpeedFromSeparation;
+
+            //Alignment beschleunigt
+            if(newVehicleSpeedFromSeparation < newVehicleSpeedFromAlignment){
+                if(vehicle.getVehicleState() == VehicleState.OUT_OF_DISTANCE) {
+                    newTargetSpeed = (newVehicleSpeedFromSeparation * seperationPercent1 + newVehicleSpeedFromAlignment * (1 - seperationPercent1));
+                }
+            }
+            else {
+                newTargetSpeed = (newVehicleSpeedFromSeparation * seperationPercent2 + newVehicleSpeedFromAlignment * (1 - seperationPercent2));
+            }
+
+
 
             //Berechnete neue Geschwindigkeit unter berücksichtigungen der physikalischen möglichkeiten und MaxSpeed anwenden
-            applyNewSpeed(vehicle,newVehicleSpeedFromSeparation,emergencyBrakingNeeded);
+            applyNewSpeed(vehicle,newTargetSpeed,emergencyBrakingNeeded);
         }
     }
 
@@ -64,8 +80,9 @@ public class Flocking {
     private static double applyAlignment(SimVehicle vehicle) {
         double currentSpeed = vehicle.getCurrentSpeed();
         List<MutablePair<SimVehicle,Double>> neighbours = Cache.getNeighbors(vehicle.getVehicleId(),ALIGNMENT_NEIGHBOUR_RADIUS);
-        double avgNeighbourSpeed = neighbours.stream().mapToDouble(mp->mp.getLeft().getTargetSpeed()).average().getAsDouble();
-        double newTargetSpeed = avgNeighbourSpeed;
+        OptionalDouble avgNeighbourSpeed = neighbours.stream().mapToDouble(mp->mp.getLeft().getTargetSpeed()).average();
+        double newTargetSpeed = -1;
+        if(avgNeighbourSpeed.isPresent()) {newTargetSpeed = avgNeighbourSpeed.getAsDouble();}
         return newTargetSpeed;
     }
 
