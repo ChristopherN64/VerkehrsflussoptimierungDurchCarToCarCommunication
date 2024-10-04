@@ -41,6 +41,9 @@ public class SimVehicle {
     private int flockingActivationStep;
     private HashMap<Boolean,Integer> trafficEstimationsSinceLastChange;
 
+    //Lane Changing
+    private boolean laneChangeNeeded;
+
     public void simulateStep(){
         if(Main.SIMULATE_CONSENSUS)  Consensus.simulateConsensus(this);
         else {
@@ -67,6 +70,8 @@ public class SimVehicle {
         this.flockingActivationStep = 0;
         this.trafficEstimationsSinceLastChange = new HashMap<>();
         numberOfEmergencyBraking=0;
+
+        this.laneChangeNeeded=false;
 
         initVehicleBehavior();
     }

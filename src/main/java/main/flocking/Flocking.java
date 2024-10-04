@@ -1,10 +1,13 @@
 package main.flocking;
 
+import main.Main;
 import main.consensus.Consensus;
 import main.vehicle.Cache;
 import main.vehicle.SimVehicle;
 import main.vehicle.VehicleState;
 import org.apache.commons.lang3.tuple.MutablePair;
+import org.eclipse.sumo.libtraci.StringDoublePair;
+import org.eclipse.sumo.libtraci.StringDoublePairVector;
 import org.eclipse.sumo.libtraci.Vehicle;
 
 import java.util.List;
@@ -34,6 +37,10 @@ public class Flocking {
     public static double seperationPercent2 = 0.6;
 
 
+    //Konstanten für Cohesion
+    public static int MAX_DISTANCE_TO_LANE_END = 250;
+
+
 
     public static void performFlocking(SimVehicle vehicle) {
         if (vehicle.isTraffic()) {
@@ -45,20 +52,20 @@ public class Flocking {
 
 
             // Separation durchführen
-            double newVehicleSpeedFromSeparation;
-            newVehicleSpeedFromSeparation = applySeparation(vehicle);
+            double newVehicleSpeedFromSeparation = applySeparation(vehicle);
 
             // Alignment durchführen
-            double newVehicleSpeedFromAlignment;
-            newVehicleSpeedFromAlignment = applyAlignment(vehicle);
+            double newVehicleSpeedFromAlignment = applyAlignment(vehicle);
             if(newVehicleSpeedFromAlignment==-1) newVehicleSpeedFromAlignment = newVehicleSpeedFromSeparation;
 
             // Cohesion durchführen (Spurwechsel)
-            //applyCohesion();
+            double newVehicleSpeedFromCohesion = applyCohesion(vehicle);
+            if(newVehicleSpeedFromCohesion==-1) newVehicleSpeedFromCohesion = newVehicleSpeedFromSeparation;
 
 
+
+            // Verrechnung
             double newTargetSpeed = newVehicleSpeedFromSeparation;
-
             //Alignment beschleunigt
             if(newVehicleSpeedFromSeparation < newVehicleSpeedFromAlignment){
                 if(vehicle.getVehicleState() == VehicleState.OUT_OF_DISTANCE) {
@@ -74,6 +81,50 @@ public class Flocking {
             //Berechnete neue Geschwindigkeit unter berücksichtigungen der physikalischen möglichkeiten und MaxSpeed anwenden
             applyNewSpeed(vehicle,newTargetSpeed,emergencyBrakingNeeded);
         }
+    }
+
+    private static double applyCohesion(SimVehicle vehicle) {
+        String vehicleId = vehicle.getVehicleId();
+        double distanceToLaneEnd = vehicle.getDistanceToLaneEnd();
+        int targetLane = -1;
+
+        vehicle.setLaneChangeNeeded(false);
+        Vehicle.setLaneChangeMode(vehicleId, 0);
+
+        //TODO bedingung für ende der gesamten Fahrbahn
+        if (distanceToLaneEnd < MAX_DISTANCE_TO_LANE_END && vehicle.getRouteIndex() > 0){
+            vehicle.setLaneChangeNeeded(true);
+
+            //0 = look Left | 1 = look Right
+            int neighbourDirectionLeftRight;
+            int currentLane = vehicle.getLane();
+            //Die rechte Spur endet
+            if(currentLane == 0) {
+                targetLane = 1;
+                neighbourDirectionLeftRight = 0;
+            }
+            //Die linke Spur endet
+            else {
+                targetLane = currentLane - 1;
+                neighbourDirectionLeftRight = 1;
+            }
+
+
+            MutablePair<SimVehicle,Double> follower = getLaneChangRelevantNeighbours(vehicle,neighbourDirectionLeftRight,0);
+            MutablePair<SimVehicle,Double> leader = getLaneChangRelevantNeighbours(vehicle,neighbourDirectionLeftRight,1);
+            System.out.println();
+
+            Vehicle.setLaneChangeMode(vehicleId,-1);
+            Vehicle.changeLane(vehicleId,targetLane,1000);
+        }
+        return -1;
+    }
+
+    private static MutablePair<SimVehicle, Double> getLaneChangRelevantNeighbours(SimVehicle simVehicle, int neighbourDirectionLeftRight, int neighbourDirectionFollowerLeader) {
+        int bits = (0) | (neighbourDirectionFollowerLeader << 1) | neighbourDirectionLeftRight;
+        StringDoublePairVector neighboursVector = Vehicle.getNeighbors(simVehicle.getVehicleId(),bits);
+        if(neighboursVector.isEmpty()) return null;
+        else return new MutablePair<>(Cache.vehicles.get(neighboursVector.getFirst().getFirst()),neighboursVector.getFirst().getSecond());
     }
 
 

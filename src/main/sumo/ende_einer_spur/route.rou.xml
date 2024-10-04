@@ -8,8 +8,8 @@
     <vType id="normal_car"/>
     <vType id="truck_with_trailer"/>
     <!-- Vehicles, persons and containers (sorted by depart) -->
-    <flow id="normal_2" type="normal_car" begin="0.00" departLane="2" departPos="0.00" departSpeed="10" from="entry" to="exit" end="0.00" number="0"/>
-    <flow id="normal_1" type="normal_car" begin="0.00" departLane="1" departPos="0.00" departSpeed="20" from="entry" to="exit" end="0" number="10"/>
-    <flow id="normal_0" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="20" from="entry" to="exit" end="0" number="10"/>
-    <flow id="truck_flow" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="20" from="entry" to="exit" end="2000" number="0"/>
+    <flow id="normal_2" type="normal_car" begin="0.00" departLane="2" departPos="0.00" departSpeed="avg" from="entry" to="exit" end="5000.00" number="2000"/>
+    <flow id="normal_1" type="normal_car" begin="0.00" departLane="1" departPos="0.00" departSpeed="avg" from="entry" to="exit" end="5000.00" number="2000"/>
+    <flow id="normal_0" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="entry" to="exit" end="5000.00" number="2000"/>
+    <flow id="truck_flow" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="entry" to="exit" end="5000.00" number="1000"/>
 </routes>

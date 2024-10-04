@@ -13,7 +13,7 @@ import java.util.List;
 
 public class Main {
     public static SimulationSzenario SIMULATION_SZENARIO;
-    public static String version = "500 steps ohne Konsens mit Alignment";
+    public static String version = "3.0";
     public static final boolean SIMULATE_CONSENSUS = false;
     public static boolean SIMULATE_FLOCKING = true;
     static final String SIMULATION_DELAY = "0";
@@ -21,10 +21,10 @@ public class Main {
     public static int step;
 
     public static void main(String[] args) {
-        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.DREISPURIGE_AUTOBAHN);
+        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.ENDE_EINER_SPUR);
 
         simulationSzenarios.forEach(simulationSzenario -> {
-            SIMULATION_SZENARIO=simulationSzenario;
+            SIMULATION_SZENARIO = simulationSzenario;
             SIMULATE_FLOCKING = true;
             simulateSzenario(simulationSzenario);
         });
