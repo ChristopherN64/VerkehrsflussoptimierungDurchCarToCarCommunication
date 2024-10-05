@@ -43,6 +43,10 @@ public class SimVehicle {
 
     //Lane Changing
     private boolean laneChangeNeeded;
+    private MutablePair<SimVehicle,Double> followerOnTargetLane;
+    private MutablePair<SimVehicle,Double> leaderOnTargetLane;
+    private MutablePair<SimVehicle,Double> followerOnEndingLane;
+    private MutablePair<SimVehicle,Double> leaderOnEndingLane;
 
     public void simulateStep(){
         if(Main.SIMULATE_CONSENSUS)  Consensus.simulateConsensus(this);

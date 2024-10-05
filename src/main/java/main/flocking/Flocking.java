@@ -58,12 +58,6 @@ public class Flocking {
             double newVehicleSpeedFromAlignment = applyAlignment(vehicle);
             if(newVehicleSpeedFromAlignment==-1) newVehicleSpeedFromAlignment = newVehicleSpeedFromSeparation;
 
-            // Cohesion durchführen (Spurwechsel)
-            double newVehicleSpeedFromCohesion = applyCohesion(vehicle);
-            if(newVehicleSpeedFromCohesion==-1) newVehicleSpeedFromCohesion = newVehicleSpeedFromSeparation;
-
-
-
             // Verrechnung
             double newTargetSpeed = newVehicleSpeedFromSeparation;
             //Alignment beschleunigt
@@ -77,21 +71,37 @@ public class Flocking {
             }
 
 
+            // Cohesion durchführen (Spurwechsel)
+            double newVehicleSpeedFromCohesion = applyCohesion(vehicle, newTargetSpeed);
+            if(newVehicleSpeedFromCohesion != -1 && (newVehicleSpeedFromCohesion < newTargetSpeed || vehicle.getVehicleState() != VehicleState.UNDER_DISTANCE)) {
+                newTargetSpeed = newVehicleSpeedFromCohesion;
+            }
+
 
             //Berechnete neue Geschwindigkeit unter berücksichtigungen der physikalischen möglichkeiten und MaxSpeed anwenden
             applyNewSpeed(vehicle,newTargetSpeed,emergencyBrakingNeeded);
         }
     }
 
-    private static double applyCohesion(SimVehicle vehicle) {
+    private static double applyCohesion(SimVehicle vehicle,double newTargetSpeedFromPreviousFunctions) {
         String vehicleId = vehicle.getVehicleId();
         double distanceToLaneEnd = vehicle.getDistanceToLaneEnd();
         int targetLane = -1;
 
-        vehicle.setLaneChangeNeeded(false);
+        if(vehicle.isLaneChangeNeeded()) {
+            vehicle.setLaneChangeNeeded(false);
+            if(vehicle.getFollowerOnTargetLane()!=null) {
+                vehicle.getFollowerOnTargetLane().getLeft().setLeaderOnEndingLane(null);
+                vehicle.setFollowerOnTargetLane(null);
+            }
+            if(vehicle.getLeaderOnTargetLane()!=null) {
+                vehicle.getLeaderOnTargetLane().getLeft().setFollowerOnEndingLane(null);
+                vehicle.setLeaderOnTargetLane(null);
+            }
+        }
         Vehicle.setLaneChangeMode(vehicleId, 0);
 
-        //TODO bedingung für ende der gesamten Fahrbahn
+        //Fahrzeug muss selber die Spur wechseln
         if (distanceToLaneEnd < MAX_DISTANCE_TO_LANE_END && vehicle.getRouteIndex() > 0){
             vehicle.setLaneChangeNeeded(true);
 
@@ -109,15 +119,39 @@ public class Flocking {
                 neighbourDirectionLeftRight = 1;
             }
 
+            MutablePair<SimVehicle,Double> followerOnTargetLane = getLaneChangRelevantNeighbours(vehicle,neighbourDirectionLeftRight,0);
+            if(followerOnTargetLane!=null) {
+                vehicle.setFollowerOnTargetLane(followerOnTargetLane);
+                Cache.vehicles.get(followerOnTargetLane.getLeft().getVehicleId()).setLeaderOnEndingLane(new MutablePair<>(vehicle,-followerOnTargetLane.getRight()));
+            }
 
-            MutablePair<SimVehicle,Double> follower = getLaneChangRelevantNeighbours(vehicle,neighbourDirectionLeftRight,0);
-            MutablePair<SimVehicle,Double> leader = getLaneChangRelevantNeighbours(vehicle,neighbourDirectionLeftRight,1);
-            System.out.println();
+            MutablePair<SimVehicle,Double> leaderOnTargetLane = getLaneChangRelevantNeighbours(vehicle,neighbourDirectionLeftRight,1);
+            if(leaderOnTargetLane!=null) {
+                vehicle.setLeaderOnTargetLane(leaderOnTargetLane);
+                Cache.vehicles.get(leaderOnTargetLane.getLeft().getVehicleId()).setFollowerOnEndingLane(new MutablePair<>(vehicle,-leaderOnTargetLane.getRight()));
+            }
 
             Vehicle.setLaneChangeMode(vehicleId,-1);
             Vehicle.changeLane(vehicleId,targetLane,1000);
+
+            //Fahrzeug hat jemanden vor sich der vor ihm einschären sollte
+            if((vehicle.getLeaderOnTargetLane() != null && vehicle.getLeaderOnTargetLane().getRight() < 5)
+                || (vehicle.getFollowerOnTargetLane() != null && vehicle.getFollowerOnTargetLane().getRight() < 5)){
+                return newTargetSpeedFromPreviousFunctions * 0.95;
+            }
+            else if(vehicle.getFollowerOnTargetLane() != null && vehicle.getFollowerOnTargetLane().getRight() > 5 && vehicle.getFollowerOnTargetLane().getRight() < 10){
+                return newTargetSpeedFromPreviousFunctions * 1.05;
+            }
         }
-        return -1;
+        //Fahrzeug hat jemanden vor sich der vor ihm einschären sollte
+        else if(vehicle.getLeaderOnEndingLane() != null && vehicle.getLeaderOnEndingLane().getRight() > 6 && vehicle.getLeaderOnEndingLane().getRight() < 10){
+            return newTargetSpeedFromPreviousFunctions * 0.95;
+        }
+        //Fahrzeug hat jemanden hinter ihm der hinter ihm einschären sollte
+        else if(vehicle.getFollowerOnEndingLane() != null && vehicle.getFollowerOnEndingLane().getRight() > -5){
+            return newTargetSpeedFromPreviousFunctions * 1.05;
+        }
+        return newTargetSpeedFromPreviousFunctions;
     }
 
     private static MutablePair<SimVehicle, Double> getLaneChangRelevantNeighbours(SimVehicle simVehicle, int neighbourDirectionLeftRight, int neighbourDirectionFollowerLeader) {
