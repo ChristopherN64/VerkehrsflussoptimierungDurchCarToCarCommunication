@@ -1,12 +1,10 @@
 package main.flocking;
 
-import main.Main;
 import main.consensus.Consensus;
 import main.vehicle.Cache;
 import main.vehicle.SimVehicle;
 import main.vehicle.VehicleState;
 import org.apache.commons.lang3.tuple.MutablePair;
-import org.eclipse.sumo.libtraci.StringDoublePair;
 import org.eclipse.sumo.libtraci.StringDoublePairVector;
 import org.eclipse.sumo.libtraci.Vehicle;
 
@@ -38,7 +36,9 @@ public class Flocking {
 
 
     //Konstanten für Cohesion
-    public static int MAX_DISTANCE_TO_LANE_END = 250;
+    public static int MAX_DISTANCE_TO_LANE_END = 400;
+    public static double MAX_LANE_CHANGE_DECELERATION = 0.85;
+    public static double MAX_LANE_CHANGE_ACCELERATION = 1.15;
 
 
 
@@ -102,7 +102,7 @@ public class Flocking {
         Vehicle.setLaneChangeMode(vehicleId, 0);
 
         //Fahrzeug muss selber die Spur wechseln
-        if (distanceToLaneEnd < MAX_DISTANCE_TO_LANE_END && vehicle.getRouteIndex() > 0){
+        if (distanceToLaneEnd < MAX_DISTANCE_TO_LANE_END && vehicle.getRouteIndex() < 5 && vehicle.getRouteIndex() > 0){
             vehicle.setLaneChangeNeeded(true);
 
             //0 = look Left | 1 = look Right
@@ -136,20 +136,20 @@ public class Flocking {
 
             //Fahrzeug hat jemanden vor sich der vor ihm einschären sollte
             if((vehicle.getLeaderOnTargetLane() != null && vehicle.getLeaderOnTargetLane().getRight() < 5)
-                || (vehicle.getFollowerOnTargetLane() != null && vehicle.getFollowerOnTargetLane().getRight() < 5)){
-                return newTargetSpeedFromPreviousFunctions * 0.95;
+                || (vehicle.getFollowerOnTargetLane() != null && vehicle.getFollowerOnTargetLane().getRight() < 3)) {
+                return newTargetSpeedFromPreviousFunctions * MAX_LANE_CHANGE_DECELERATION;
             }
-            else if(vehicle.getFollowerOnTargetLane() != null && vehicle.getFollowerOnTargetLane().getRight() > 5 && vehicle.getFollowerOnTargetLane().getRight() < 10){
-                return newTargetSpeedFromPreviousFunctions * 1.05;
+
+            /*
+            else if(vehicle.getFollowerOnTargetLane() != null && vehicle.getFollowerOnTargetLane().getRight() > 3 && vehicle.getFollowerOnTargetLane().getRight() < 10){
+                return newTargetSpeedFromPreviousFunctions * MAX_LANE_CHANGE_ACCELERATION;
             }
+            */
         }
-        //Fahrzeug hat jemanden vor sich der vor ihm einschären sollte
-        else if(vehicle.getLeaderOnEndingLane() != null && vehicle.getLeaderOnEndingLane().getRight() > 6 && vehicle.getLeaderOnEndingLane().getRight() < 10){
-            return newTargetSpeedFromPreviousFunctions * 0.95;
-        }
+
         //Fahrzeug hat jemanden hinter ihm der hinter ihm einschären sollte
-        else if(vehicle.getFollowerOnEndingLane() != null && vehicle.getFollowerOnEndingLane().getRight() > -5){
-            return newTargetSpeedFromPreviousFunctions * 1.05;
+        else if(vehicle.getFollowerOnEndingLane() != null && vehicle.getFollowerOnEndingLane().getRight() > 2  && vehicle.getFollowerOnEndingLane().getRight() > -5){
+            return newTargetSpeedFromPreviousFunctions * MAX_LANE_CHANGE_ACCELERATION;
         }
         return newTargetSpeedFromPreviousFunctions;
     }
