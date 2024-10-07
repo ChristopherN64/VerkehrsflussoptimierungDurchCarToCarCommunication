@@ -24,9 +24,15 @@ public class Main {
         List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.ENDE_EINER_SPUR);
 
         simulationSzenarios.forEach(simulationSzenario -> {
-            SIMULATION_SZENARIO = simulationSzenario;
-            SIMULATE_FLOCKING = true;
-            simulateSzenario(simulationSzenario);
+            for(Flocking.COHESION_NEIGHBOUR_RADIUS = 500; Flocking.COHESION_NEIGHBOUR_RADIUS > 200; Flocking.COHESION_NEIGHBOUR_RADIUS -= 100) {
+                for(Flocking.COHESION_LANE_CHANGE_COOLDOWN = 10; Flocking.COHESION_LANE_CHANGE_COOLDOWN < 100; Flocking.COHESION_LANE_CHANGE_COOLDOWN += 20){
+                    for(Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE = 1.1; Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE < 2; Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE += 0.2){
+                        SIMULATION_SZENARIO = simulationSzenario;
+                        SIMULATE_FLOCKING = true;
+                        simulateSzenario(simulationSzenario);
+                    }
+                }
+            }
         });
     }
 

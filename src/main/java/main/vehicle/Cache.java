@@ -130,37 +130,15 @@ public class Cache {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    public static void getLaneInformation(SimVehicle vehicle){
-        int lane;
-        int numberOfLanes;
-        double distanceToLaneEnd;
+    public static void getLaneInformation(SimVehicle vehicle) {
+        HashMap<Integer, Double> laneDistances = new HashMap<>();
         String vehicleId = vehicle.getVehicleId();
-
-        // Aktuelle Spur-ID des Fahrzeugs abrufen
-        String laneID = Vehicle.getLaneID(vehicleId);
-
-        // Aktueller Spurindex des Fahrzeugs abrufen
-        Integer laneIndex = Vehicle.getLaneIndex(vehicleId);
-        lane = laneIndex;
 
         // Aktuellen Edge (Straßenabschnitt) des Fahrzeugs abrufen
         String edgeID = Vehicle.getRoadID(vehicleId);
 
         // Anzahl der Spuren auf dem aktuellen Edge abrufen
-        Integer numLanes =  Edge.getLaneNumber(edgeID);
-        numberOfLanes = numLanes;
-
-        // Aktuelle Position des Fahrzeugs auf der Spur abrufen
-        Double lanePosition =Vehicle.getLanePosition(vehicleId);
-
-        // Länge der aktuellen Spur abrufen
-        Double laneLength = Lane.getLength(laneID);
-
-        // Berechnung der verbleibenden Distanz auf der aktuellen Spur
-        double remainingLaneLength = laneLength - lanePosition;
-
-        // Initialisierung der Distanz bis zum tatsächlichen Spurende
-        distanceToLaneEnd = remainingLaneLength;
+        Integer numLanes = Edge.getLaneNumber(edgeID);
 
         // Route des Fahrzeugs abrufen
         List<String> route = Vehicle.getRoute(vehicleId).stream().toList();
@@ -169,55 +147,76 @@ public class Cache {
         int routeIndex = Vehicle.getRouteIndex(vehicleId);
         vehicle.setRouteIndex(routeIndex);
 
-        // Aktuelle Spur als Startpunkt für die Überprüfung setzen
-        String currentLaneID = laneID;
+        // Aktuelle Position des Fahrzeugs auf der Spur abrufen
+        Double vehicleLanePosition = Vehicle.getLanePosition(vehicleId);
 
-        // Schleife über die verbleibenden Edges in der Route
-        for (int i = routeIndex + 1; i < route.size(); i++) {
-            String nextEdgeID = route.get(i);
+        // Schleife über alle Spuren (Lanes) auf dem aktuellen Edge
+        for (int laneIndex = 0; laneIndex < numLanes; laneIndex++) {
+            String laneID = edgeID + "_" + laneIndex;
 
-            // Verbindungen von der aktuellen Spur abrufen
-            List<TraCIConnection> links = Lane.getLinks(currentLaneID).stream().toList();
+            // Verwende die aktuelle Position des Fahrzeugs für alle Spuren
+            Double lanePosition = vehicleLanePosition;
 
-            boolean foundNextLane = false;
+            // Länge der aktuellen Spur abrufen
+            Double laneLength = Lane.getLength(laneID);
 
-            // Überprüfen, ob es eine Verbindung zu einer Spur auf dem nächsten Edge gibt
-            for (TraCIConnection link : links) {
-                // Ziel-Spur-ID abrufen
-                String toLaneID = link.getApproachedLane();
+            // Berechnung der verbleibenden Distanz auf der aktuellen Spur
+            double distanceToLaneEnd = laneLength - lanePosition;
 
-                // Edge-ID der Zielspur abrufen
-                String toLaneEdgeID = Lane.getEdgeID(toLaneID);
+            // Aktuelle Spur als Startpunkt für die Überprüfung setzen
+            String currentLaneID = laneID;
 
-                // Wenn die Zielspur auf dem nächsten Edge liegt
-                if (toLaneEdgeID.equals(nextEdgeID)) {
-                    // Aktualisiere die aktuelle Spur-ID
-                    currentLaneID = toLaneID;
+            // Schleife über die verbleibenden Edges in der Route
+            for (int i = routeIndex + 1; i < route.size(); i++) {
+                String nextEdgeID = route.get(i);
 
-                    // Länge der nächsten Spur abrufen
-                    Double nextLaneLength = Lane.getLength(currentLaneID);
+                // Verbindungen von der aktuellen Spur abrufen
+                List<TraCIConnection> links = Lane.getLinks(currentLaneID).stream().toList();
 
-                    // Aktualisiere die Distanz bis zum Spurende
-                    distanceToLaneEnd += nextLaneLength;
-                    foundNextLane = true;
+                boolean foundNextLane = false;
+
+                // Überprüfen, ob es eine Verbindung zu einer Spur auf dem nächsten Edge gibt
+                for (TraCIConnection link : links) {
+                    // Ziel-Spur-ID abrufen
+                    String toLaneID = link.getApproachedLane();
+
+                    // Edge-ID der Zielspur abrufen
+                    String toLaneEdgeID = Lane.getEdgeID(toLaneID);
+
+                    // Wenn die Zielspur auf dem nächsten Edge liegt
+                    if (toLaneEdgeID.equals(nextEdgeID)) {
+                        // Aktualisiere die aktuelle Spur-ID
+                        currentLaneID = toLaneID;
+
+                        // Länge der nächsten Spur abrufen
+                        Double nextLaneLength = Lane.getLength(currentLaneID);
+
+                        // Aktualisiere die Distanz bis zum Spurende
+                        distanceToLaneEnd += nextLaneLength;
+                        foundNextLane = true;
+                        break;
+                    }
+                }
+
+                if (!foundNextLane) {
+                    // Keine weitere Verbindung entlang der Route gefunden; Spur endet hier
                     break;
                 }
             }
 
-            if (!foundNextLane) {
-                // Keine weitere Verbindung entlang der Route gefunden; Spur endet hier
-                break;
+            // Wenn es sich um die letzte Edge der gesamten Route handelt, setze die Distanz auf MaxValue
+            if (routeIndex == route.size() - 1) {
+                distanceToLaneEnd = Double.MAX_VALUE;
             }
+
+            // Füge das Paar (LaneIndex, Distance) zur HashMap hinzu
+            laneDistances.put(laneIndex, distanceToLaneEnd);
         }
 
-        //Wenn es sich um die letzte Edge der gesamten route handelt distance = MaxValue damit auto weiter fährt und entfernt wird
-        if(routeIndex == route.size()-1) {
-            distanceToLaneEnd = Double.MAX_VALUE;
-        }
-
-
-        vehicle.setLane(lane);
-        vehicle.setDistanceToLaneEnd(distanceToLaneEnd);
-        vehicle.setNumberOfLanes(numberOfLanes);
+        vehicle.setLane(Vehicle.getLaneIndex(vehicleId));
+        vehicle.setNumberOfLanes(numLanes);
+        vehicle.setDistancesToLaneEnd(laneDistances);
     }
+
+
 }

@@ -30,7 +30,8 @@ public class SimVehicle {
 
     private int lane;
     private int numberOfLanes;
-    private double distanceToLaneEnd;
+    private int stepOfLastLaneChange;
+    private HashMap<Integer, Double> distancesToLaneEnd;
     private int routeIndex;
 
     private MutablePair<SimVehicle,Double> leaderWithDistance;
@@ -76,6 +77,7 @@ public class SimVehicle {
         numberOfEmergencyBraking=0;
 
         this.laneChangeNeeded=false;
+        this.stepOfLastLaneChange=Integer.MAX_VALUE;
 
         initVehicleBehavior();
     }
@@ -154,5 +156,9 @@ public class SimVehicle {
 
     public void emergencyBrake() {
         this.numberOfEmergencyBraking++;
+    }
+
+    public double getDistanceToEndOfCurrentLane() {
+        return distancesToLaneEnd.getOrDefault(lane,Double.MAX_VALUE);
     }
 }

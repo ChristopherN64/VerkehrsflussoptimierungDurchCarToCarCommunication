@@ -1,5 +1,6 @@
 package main.flocking;
 
+import main.Main;
 import main.consensus.Consensus;
 import main.vehicle.Cache;
 import main.vehicle.SimVehicle;
@@ -8,6 +9,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.eclipse.sumo.libtraci.StringDoublePairVector;
 import org.eclipse.sumo.libtraci.Vehicle;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.OptionalDouble;
 
@@ -39,6 +41,9 @@ public class Flocking {
     public static int MAX_DISTANCE_TO_LANE_END = 400;
     public static double MAX_LANE_CHANGE_DECELERATION = 0.85;
     public static double MAX_LANE_CHANGE_ACCELERATION = 1.15;
+    public static int COHESION_NEIGHBOUR_RADIUS = 500;
+    public static double COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE = 1.4;
+    public static int COHESION_LANE_CHANGE_COOLDOWN = 20;
 
 
 
@@ -85,7 +90,7 @@ public class Flocking {
 
     private static double applyCohesion(SimVehicle vehicle,double newTargetSpeedFromPreviousFunctions) {
         String vehicleId = vehicle.getVehicleId();
-        double distanceToLaneEnd = vehicle.getDistanceToLaneEnd();
+        double distanceToEndOfCurrentLane = vehicle.getDistanceToEndOfCurrentLane();
         int targetLane = -1;
 
         if(vehicle.isLaneChangeNeeded()) {
@@ -101,23 +106,30 @@ public class Flocking {
         }
         Vehicle.setLaneChangeMode(vehicleId, 0);
 
-        //Fahrzeug muss selber die Spur wechseln
-        if (distanceToLaneEnd < MAX_DISTANCE_TO_LANE_END && vehicle.getRouteIndex() < 5 && vehicle.getRouteIndex() > 0){
-            vehicle.setLaneChangeNeeded(true);
 
-            //0 = look Left | 1 = look Right
-            int neighbourDirectionLeftRight;
-            int currentLane = vehicle.getLane();
+        //Calculate if lane change ist needed
+        int currentLane = vehicle.getLane();
+
+        //Fahrzeug muss selber die Spur wechseln da seine Spur endet
+        if(distanceToEndOfCurrentLane < MAX_DISTANCE_TO_LANE_END && vehicle.getDistancesToLaneEnd().values().stream().distinct().count() != 1 && vehicle.getRouteIndex() > 0){
+            vehicle.setLaneChangeNeeded(true);
             //Die rechte Spur endet
-            if(currentLane == 0) {
-                targetLane = 1;
-                neighbourDirectionLeftRight = 0;
-            }
+            if(currentLane == 0) targetLane = 1;
             //Die linke Spur endet
-            else {
-                targetLane = currentLane - 1;
-                neighbourDirectionLeftRight = 1;
-            }
+            else targetLane = currentLane - 1;
+        }
+
+        //Spurwechsel weil andere Spur deutlich weniger ausgelastet ist
+        else {
+            targetLane = getNewTargetLaneByLaneUtilization(vehicle);
+            if(targetLane != vehicle.getLane() && Main.step - vehicle.getStepOfLastLaneChange() > COHESION_LANE_CHANGE_COOLDOWN) vehicle.setLaneChangeNeeded(true);
+        }
+
+        //Spurwechsel wenn nötig durchführen
+        if (vehicle.isLaneChangeNeeded()){
+            //0 = look Left | 1 = look Right
+            int neighbourDirectionLeftRight = 0;
+            if(targetLane <= vehicle.getLane()) neighbourDirectionLeftRight = 1;
 
             MutablePair<SimVehicle,Double> followerOnTargetLane = getLaneChangRelevantNeighbours(vehicle,neighbourDirectionLeftRight,0);
             if(followerOnTargetLane!=null) {
@@ -132,19 +144,19 @@ public class Flocking {
             }
 
             Vehicle.setLaneChangeMode(vehicleId,-1);
-            Vehicle.changeLane(vehicleId,targetLane,1000);
+            try {
+                Vehicle.changeLane(vehicleId,targetLane,1000);
+                vehicle.setStepOfLastLaneChange(Main.step);
+            } catch (IllegalArgumentException e){
+                System.out.println("Lane Change failed! Target Lane " + targetLane + " current lane: "+vehicle.getLane()+"  number of Lanes: "+vehicle.getNumberOfLanes());
+            }
+
 
             //Fahrzeug hat jemanden vor sich der vor ihm einschären sollte
             if((vehicle.getLeaderOnTargetLane() != null && vehicle.getLeaderOnTargetLane().getRight() < 5)
                 || (vehicle.getFollowerOnTargetLane() != null && vehicle.getFollowerOnTargetLane().getRight() < 3)) {
                 return newTargetSpeedFromPreviousFunctions * MAX_LANE_CHANGE_DECELERATION;
             }
-
-            /*
-            else if(vehicle.getFollowerOnTargetLane() != null && vehicle.getFollowerOnTargetLane().getRight() > 3 && vehicle.getFollowerOnTargetLane().getRight() < 10){
-                return newTargetSpeedFromPreviousFunctions * MAX_LANE_CHANGE_ACCELERATION;
-            }
-            */
         }
 
         //Fahrzeug hat jemanden hinter ihm der hinter ihm einschären sollte
@@ -152,6 +164,31 @@ public class Flocking {
             return newTargetSpeedFromPreviousFunctions * MAX_LANE_CHANGE_ACCELERATION;
         }
         return newTargetSpeedFromPreviousFunctions;
+    }
+
+    private static int getNewTargetLaneByLaneUtilization(SimVehicle vehicle){
+        HashMap<Integer,Integer> laneUtilization = getLaneUtilization(vehicle);
+        int utilizationOnCurrentLane = laneUtilization.get(vehicle.getLane());
+        //Überprüfe spur eins weiter rechts
+        if(checkIfLaneIsBetter(vehicle.getLane() - 1,vehicle,utilizationOnCurrentLane,laneUtilization)) return vehicle.getLane() - 1;
+        //Überprüfe spur eins weiter links
+        if (checkIfLaneIsBetter(vehicle.getLane() + 1 ,vehicle,utilizationOnCurrentLane,laneUtilization)) return vehicle.getLane() + 1;
+        return vehicle.getLane();
+    }
+
+    public static boolean checkIfLaneIsBetter(int potentialLane,SimVehicle vehicle,int utilizationOnCurrentLane,HashMap<Integer,Integer> laneUtilization){
+        return  (potentialLane > 0 && potentialLane < vehicle.getNumberOfLanes()
+                && (double) utilizationOnCurrentLane / laneUtilization.get(potentialLane) > COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE
+                && vehicle.getDistancesToLaneEnd().get(potentialLane) > MAX_DISTANCE_TO_LANE_END);
+
+    }
+
+    private static HashMap<Integer, Integer> getLaneUtilization(SimVehicle vehicle) {
+        HashMap<Integer, Integer> laneUtilization = new HashMap<>();
+        List<MutablePair<SimVehicle,Double>> neighbours = Cache.getNeighbors(vehicle.getVehicleId(),COHESION_NEIGHBOUR_RADIUS);
+        neighbours.stream().map(MutablePair::getLeft).forEach(neighbour-> laneUtilization.put(neighbour.getLane(),laneUtilization.getOrDefault(neighbour.getLane(),0) + 1));
+        for(int i = 0; i< vehicle.getNumberOfLanes(); i++) laneUtilization.putIfAbsent(i,0);
+        return laneUtilization;
     }
 
     private static MutablePair<SimVehicle, Double> getLaneChangRelevantNeighbours(SimVehicle simVehicle, int neighbourDirectionLeftRight, int neighbourDirectionFollowerLeader) {
@@ -202,7 +239,7 @@ public class Flocking {
         } else {
             vehicle.setVehicleState(VehicleState.NO_LEADER);
             double newOwnSpeed = maxFlockingSpeed;
-            if(vehicle.getDistanceToLaneEnd() < 30) newOwnSpeed = 0;
+            if(vehicle.getDistanceToEndOfCurrentLane() < 30) newOwnSpeed = 0;
             return newOwnSpeed;
         }
     }

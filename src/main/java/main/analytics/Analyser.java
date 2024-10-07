@@ -101,7 +101,7 @@ public class Analyser {
             sb.append(getAnalysisOfState(VehicleState.IN_DISTANCE)).append(',');
             sb.append(getAnalysisOfState(VehicleState.OUT_OF_DISTANCE)).append(',');
             sb.append(getAnalysisOfState(VehicleState.NO_LEADER)).append(',');
-            sb.append("Radius: "+ Flocking.ALIGNMENT_NEIGHBOUR_RADIUS+" "+"Spe1: "+Flocking.seperationPercent1+" Sep2: "+Flocking.seperationPercent2);
+            sb.append("Radius: "+ Flocking.COHESION_NEIGHBOUR_RADIUS+" "+"Cooldown: "+Flocking.COHESION_LANE_CHANGE_COOLDOWN+" MinOffset: "+Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE);
 
 
 
