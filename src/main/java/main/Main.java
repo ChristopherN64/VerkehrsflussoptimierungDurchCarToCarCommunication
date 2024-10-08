@@ -14,14 +14,14 @@ import java.util.List;
 public class Main {
     public static SimulationSzenario SIMULATION_SZENARIO;
     public static String version = "3.0";
-    public static final boolean SIMULATE_CONSENSUS = false;
-    public static boolean SIMULATE_FLOCKING = false;
+    public static final boolean SIMULATE_CONSENSUS = true;
+    public static boolean SIMULATE_FLOCKING = true;
     public static final String SIMULATION_DELAY = "0";
     public static final int SIMULATION_STEPS = 500;
     public static int step;
 
     public static void main(String[] args) {
-        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.DREISPURIGE_AUTOBAHN,SimulationSzenario.DREISPURIGE_AUTOBAHN,SimulationSzenario.BAUSTELLE,SimulationSzenario.BAUSTELLE);
+        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.CIRCLE);
 
         simulationSzenarios.forEach(simulationSzenario -> {
             SIMULATION_SZENARIO = simulationSzenario;
@@ -79,7 +79,7 @@ public class Main {
                 "--start",                // Simulation automatisch starten
                 "--delay", SIMULATION_DELAY,         // Delay von 500 ms
                 "-c", ".\\src\\main\\sumo\\" + szenario.folder + "\\sumo_setting.sumocfg",  // Konfigurationsdatei
-                "--quit-on-end"
+               // "--quit-on-end"
         }));
 
         System.out.println("Simulations-Initialisierung abgeschlossen");
