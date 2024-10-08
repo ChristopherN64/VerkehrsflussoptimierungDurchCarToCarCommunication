@@ -17,52 +17,53 @@ import java.util.Random;
 @Data
 public class SimVehicle {
 
+    //General Informations
     private String vehicleId;
     private MutablePair<Double,Double> position;
     private int ageInSteps;
     private VehicleState vehicleState;
     private LinkedList<CarToXMessage> messageQueue;
 
+    //Speed Informations
     private double currentSpeed;
     private double targetSpeed;
     private double maxVehicleSpeed;
     private double maxRoadSpeed;
 
+    //Lane / Route Informations
     private int lane;
     private int numberOfLanes;
     private int stepOfLastLaneChange;
     private HashMap<Integer, Double> distancesToLaneEnd;
     private int routeIndex;
 
+    //Flocking Informations
+    private boolean isTraffic;
+    private HashMap<Boolean,Integer> trafficEstimationsSinceLastChange;
+    private int flockingActivationStep;
     private MutablePair<SimVehicle,Double> leaderWithDistance;
 
-    private int numberOfEmergencyBraking;
-
-    private boolean isTraffic;
-    private int flockingActivationStep;
-    private HashMap<Boolean,Integer> trafficEstimationsSinceLastChange;
-
-    //Lane Changing
+    //Cohesion Informations
     private boolean laneChangeNeeded;
     private MutablePair<SimVehicle,Double> followerOnTargetLane;
     private MutablePair<SimVehicle,Double> leaderOnTargetLane;
     private MutablePair<SimVehicle,Double> followerOnEndingLane;
     private MutablePair<SimVehicle,Double> leaderOnEndingLane;
 
+    //Analysis Informations
+    private int numberOfEmergencyBraking;
+
     public void simulateStep(){
         if(Main.SIMULATE_CONSENSUS)  Consensus.simulateConsensus(this);
-        else {
-            setVehicleState(VehicleState.SYNCHRONIZED);
-            setTraffic(true);
-        }
+        else setTraffic(true);
 
-        if(Main.SIMULATE_FLOCKING && isTraffic) Flocking.performFlocking(this);
+        if(Main.SIMULATE_FLOCKING && this.isTraffic) Flocking.performFlocking(this);
 
-        if(!isTraffic) initVehicleBehavior();
+        if(!isTraffic) reinitNormalVehicleBehavior();
 
-        clearMessages();
+        clearCarToXMessageQueue();
         Analyser.updateVehicleResult(this);
-        ageInSteps++;
+        this.ageInSteps++;
     }
 
     public SimVehicle(String vehicleId){
@@ -74,20 +75,20 @@ public class SimVehicle {
         this.isTraffic = false;
         this.flockingActivationStep = 0;
         this.trafficEstimationsSinceLastChange = new HashMap<>();
-        numberOfEmergencyBraking=0;
+        this.numberOfEmergencyBraking=0;
 
         this.laneChangeNeeded=false;
         this.stepOfLastLaneChange=Integer.MAX_VALUE;
 
-        initVehicleBehavior();
+        reinitNormalVehicleBehavior();
     }
 
     public void setVehicleState(VehicleState vehicleState) {
-        if(this.vehicleState==vehicleState) return;
+        if(this.vehicleState == vehicleState) return;
         this.vehicleState = vehicleState;
     }
 
-    private void clearMessages(){
+    private void clearCarToXMessageQueue(){
         messageQueue = new LinkedList<>();
     }
 
@@ -95,10 +96,10 @@ public class SimVehicle {
         if(this.isTraffic == traffic) return;
         this.isTraffic = traffic;
         if(this.isTraffic) flockingActivationStep = Main.step;
-        if(!this.isTraffic) initVehicleBehavior();
+        if(!this.isTraffic) reinitNormalVehicleBehavior();
     }
 
-    public void initVehicleBehavior(){
+    public void reinitNormalVehicleBehavior(){
         Vehicle.setSpeed(vehicleId,-1);
         Vehicle.setLaneChangeMode(vehicleId,-1);
 
@@ -145,7 +146,7 @@ public class SimVehicle {
         do {
             // Generiere eine normalverteilte Zufallszahl
             value = mean + stddev * random.nextGaussian();
-        } while (value < min || value > max); // Beschneiden, wenn außerhalb des Bereichs
+        } while (value < min || value > max);
 
         return value;
     }

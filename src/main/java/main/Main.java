@@ -15,28 +15,25 @@ public class Main {
     public static SimulationSzenario SIMULATION_SZENARIO;
     public static String version = "3.0";
     public static final boolean SIMULATE_CONSENSUS = false;
-    public static boolean SIMULATE_FLOCKING = true;
-    static final String SIMULATION_DELAY = "0";
-    static final int SIMULATION_STEPS = 500;
+    public static boolean SIMULATE_FLOCKING = false;
+    public static final String SIMULATION_DELAY = "0";
+    public static final int SIMULATION_STEPS = 500;
     public static int step;
 
     public static void main(String[] args) {
-        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.ENDE_EINER_SPUR);
+        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.DREISPURIGE_AUTOBAHN,SimulationSzenario.DREISPURIGE_AUTOBAHN,SimulationSzenario.BAUSTELLE,SimulationSzenario.BAUSTELLE);
 
         simulationSzenarios.forEach(simulationSzenario -> {
-            for(Flocking.COHESION_NEIGHBOUR_RADIUS = 500; Flocking.COHESION_NEIGHBOUR_RADIUS > 200; Flocking.COHESION_NEIGHBOUR_RADIUS -= 100) {
-                for(Flocking.COHESION_LANE_CHANGE_COOLDOWN = 10; Flocking.COHESION_LANE_CHANGE_COOLDOWN < 100; Flocking.COHESION_LANE_CHANGE_COOLDOWN += 20){
-                    for(Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE = 1.1; Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE < 2; Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE += 0.2){
-                        SIMULATION_SZENARIO = simulationSzenario;
-                        SIMULATE_FLOCKING = true;
-                        simulateSzenario(simulationSzenario);
-                    }
-                }
+            SIMULATION_SZENARIO = simulationSzenario;
+            try {
+                simulateSzenario(simulationSzenario);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
     }
 
-    public static void simulateSzenario(SimulationSzenario szenario){
+    public static void simulateSzenario(SimulationSzenario szenario) {
         initSimulation(szenario);
         Cache.initMap();
         Analyser.init();
@@ -59,7 +56,14 @@ public class Main {
 
     //Simuliert alle Fahrzeuge auf der Karte
     private static void simulateAllVehicles() {
-        Cache.vehicles.values().forEach(SimVehicle::simulateStep);
+        Cache.vehicles.values().forEach(v -> {
+            try {
+                v.simulateStep();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
     }
 
 
@@ -70,7 +74,7 @@ public class Main {
         System.loadLibrary("libtracijni");
 
         // Starten der SUMO-GUI-Simulation mit automatischem Start und einem Delay von 500 ms
-        Simulation.start(new StringVector(new String[] {
+        Simulation.start(new StringVector(new String[]{
                 "sumo-gui",               // SUMO-GUI starten
                 "--start",                // Simulation automatisch starten
                 "--delay", SIMULATION_DELAY,         // Delay von 500 ms
@@ -81,7 +85,7 @@ public class Main {
         System.out.println("Simulations-Initialisierung abgeschlossen");
     }
 
-    private static void stopSimulationAndSumo(){
+    private static void stopSimulationAndSumo() {
         Simulation.close();
         System.out.println("Simulation beendet.");
     }

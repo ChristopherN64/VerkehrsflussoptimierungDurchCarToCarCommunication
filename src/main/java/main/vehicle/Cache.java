@@ -30,25 +30,29 @@ public class Cache {
         Cache.clearVehicleGrid();
         //Add new Vehicles and preprocess
         vehicleIds.forEach(vehicleId->{
+            //Add new vehicle to Cache
             if(!Cache.vehicles.containsKey(vehicleId)) Cache.vehicles.put(vehicleId, new SimVehicle(vehicleId));
-
-            TraCIPosition position = Vehicle.getPosition(vehicleId);
             SimVehicle vehicle = Cache.vehicles.get(vehicleId);
-            vehicle.setPosition(new MutablePair<>(position.getX(),position.getY()));
-            Cache.addVehicle(vehicle);
 
+            //Get vehicle position and add to Vehicle-Grid for performant Position based search
+            TraCIPosition position = Vehicle.getPosition(vehicleId);
+            vehicle.setPosition(new MutablePair<>(position.getX(),position.getY()));
+            Cache.addVehicleToVehicleGrid(vehicle);
+
+            //Set vehicle speeds
             double currentSpeed = Vehicle.getSpeed(vehicleId);
             vehicle.setCurrentSpeed(currentSpeed);
             vehicle.setTargetSpeed(currentSpeed);
             vehicle.setMaxVehicleSpeed(Vehicle.getMaxSpeed(vehicleId));
             vehicle.setMaxRoadSpeed(roadSpeeds.get(Vehicle.getRoadID(vehicleId)));
 
+            //Set vehicle leader for separation
             StringDoublePair leaderWithDistance = Vehicle.getLeader(vehicleId);
             double distance = leaderWithDistance.getSecond();
             if(distance != -1) vehicle.setLeaderWithDistance(new MutablePair<>(Cache.vehicles.get(leaderWithDistance.getFirst()),distance));
             else vehicle.setLeaderWithDistance(null);
 
-            //get lane information
+            //Set vehicle lane information
             getLaneInformation(vehicle);
         });
 
@@ -61,18 +65,13 @@ public class Cache {
 
         //Remove finished Vehicles
         Cache.vehicles.values().removeIf(vehicle->{
-            if(!vehicleIds.contains(vehicle.getVehicleId())){
-                return setVehicleRemoved(vehicle, VehicleState.FINISHED);
-            }
+            if(!vehicleIds.contains(vehicle.getVehicleId())) return setVehicleRemoved(vehicle, VehicleState.FINISHED);
             return false;
         });
     }
 
     public static void removeVehicle(SimVehicle vehicle,VehicleState vehicleState){
-        if(Cache.vehicles.values().remove(vehicle)){
-            setVehicleRemoved(vehicle,vehicleState);
-        }
-
+        if(Cache.vehicles.values().remove(vehicle)) setVehicleRemoved(vehicle,vehicleState);
     }
 
     public static boolean setVehicleRemoved(SimVehicle vehicle,VehicleState vehicleState) {
@@ -87,7 +86,7 @@ public class Cache {
         return cellX + "," + cellY;
     }
 
-    public static void addVehicle(SimVehicle vehicle) {
+    public static void addVehicleToVehicleGrid(SimVehicle vehicle) {
         String cellKey = getCellKey(vehicle.getPosition().getLeft(), vehicle.getPosition().getRight());
         vehicleGrid.putIfAbsent(cellKey, new ArrayList<>());
         vehicleGrid.get(cellKey).add(vehicle);
@@ -217,6 +216,4 @@ public class Cache {
         vehicle.setNumberOfLanes(numLanes);
         vehicle.setDistancesToLaneEnd(laneDistances);
     }
-
-
 }
