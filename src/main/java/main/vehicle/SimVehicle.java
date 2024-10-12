@@ -32,6 +32,7 @@ public class SimVehicle {
 
     //Lane / Route Informations
     private int lane;
+    private int previousLane;
     private int numberOfLanes;
     private int stepOfLastLaneChange;
     private HashMap<Integer, Double> distancesToLaneEnd;

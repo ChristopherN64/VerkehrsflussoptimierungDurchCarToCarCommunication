@@ -129,15 +129,17 @@ public class Flocking {
         else {
             double distanceToNearestLaneEnd = vehicle.getDistancesToLaneEnd().values().stream().min(Double::compareTo).orElse(Double.MAX_VALUE);
             int indexOfEndingLane = -1;
+            int indexOfTargetLane = -2;
             double minimumUtilisationOffsetOnNewLane = COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE;
             if(distanceToNearestLaneEnd < MAX_DISTANCE_TO_LANE_END && vehicle.getDistancesToLaneEnd().values().stream().distinct().count() != 1){
                 indexOfEndingLane = 2;
+                indexOfTargetLane = 1;
                 minimumUtilisationOffsetOnNewLane = 1.4;
                 if(Main.step - vehicle.getStepOfLastLaneChange() < COHESION_LANE_CHANGE_COOLDOWN / 2) {
                     vehicle.setStepOfLastLaneChange(Main.step - (COHESION_LANE_CHANGE_COOLDOWN / 2));
                 }
             }
-            targetLane = getNewTargetLaneByLaneUtilization(vehicle,indexOfEndingLane,minimumUtilisationOffsetOnNewLane);
+            targetLane = getNewTargetLaneByLaneUtilization(vehicle,indexOfEndingLane,indexOfTargetLane,minimumUtilisationOffsetOnNewLane);
             if(targetLane != vehicle.getLane() && (Main.step - vehicle.getStepOfLastLaneChange() > COHESION_LANE_CHANGE_COOLDOWN)) {
                 vehicle.setLaneChangeNeeded(true);
             }
@@ -161,19 +163,23 @@ public class Flocking {
                 Cache.vehicles.get(leaderOnTargetLane.getLeft().getVehicleId()).setFollowerOnEndingLane(new MutablePair<>(vehicle,-leaderOnTargetLane.getRight()));
             }
 
-            //Aktiviere Sumo-Spurwechsel bis das Fahrzeug die target Spur erreicht hat
-            Vehicle.setLaneChangeMode(vehicleId,-1);
-            try {
-                Vehicle.setParameter(vehicleId, "laneChangeModel", "LC2013");
-                Vehicle.setParameter(vehicleId, "lcStrategic", "1");
-                Vehicle.setParameter(vehicleId, "lcCooperative", "1");
-                Vehicle.setParameter(vehicleId, "lcSpeedGain", "1");
-                Vehicle.setParameter(vehicleId, "lcKeepRight", "0");
-                Vehicle.setParameter(vehicleId, "lcAssertive", "0");
-                Vehicle.changeLane(vehicleId,targetLane,10);
-                vehicle.setStepOfLastLaneChange(Main.step);
-            } catch (IllegalArgumentException e){
-                System.out.println("Lane Change failed! Target Lane " + targetLane + " current lane: "+vehicle.getLane()+"  number of Lanes: "+vehicle.getNumberOfLanes());
+            double distanceToLeaderOnTargetLane = vehicle.getLeaderOnTargetLane() != null ? vehicle.getLeaderOnTargetLane().getRight() : Double.MAX_VALUE;
+            double distanceToFollowerOnTargetLane = vehicle.getFollowerOnTargetLane() != null ? vehicle.getFollowerOnTargetLane().getRight() : Double.MAX_VALUE;
+            if(distanceToLeaderOnTargetLane > 3 && distanceToFollowerOnTargetLane > 5){
+                //Aktiviere Sumo-Spurwechsel bis das Fahrzeug die target Spur erreicht hat
+                Vehicle.setLaneChangeMode(vehicleId,-1);
+                try {
+                    Vehicle.setParameter(vehicleId, "laneChangeModel", "LC2013");
+                    Vehicle.setParameter(vehicleId, "lcStrategic", "1");
+                    Vehicle.setParameter(vehicleId, "lcCooperative", "1");
+                    Vehicle.setParameter(vehicleId, "lcSpeedGain", "1");
+                    Vehicle.setParameter(vehicleId, "lcKeepRight", "0");
+                    Vehicle.setParameter(vehicleId, "lcAssertive", "0");
+                    Vehicle.changeLane(vehicleId,targetLane,10);
+                    vehicle.setStepOfLastLaneChange(Main.step);
+                } catch (IllegalArgumentException e){
+                    System.out.println("Lane Change failed! Target Lane " + targetLane + " current lane: "+vehicle.getLane()+"  number of Lanes: "+vehicle.getNumberOfLanes());
+                }
             }
 
             if(distanceToEndOfCurrentLane < (double) MAX_DISTANCE_TO_LANE_END / 1.5){
@@ -203,17 +209,19 @@ public class Flocking {
         return newTargetSpeedFromPreviousFunctions;
     }
 
-    private static int getNewTargetLaneByLaneUtilization(SimVehicle vehicle,int indexOfEndingLane,double minimumUtilisationOffsetOnNewLane){
+    private static int getNewTargetLaneByLaneUtilization(SimVehicle vehicle,int indexOfEndingLane, int indexOfTargetLane,double minimumUtilisationOffsetOnNewLane){
         HashMap<Integer,Integer> laneUtilization = vehicle.getLaneUtilization();
         int utilizationOnCurrentLane = laneUtilization.get(vehicle.getLane());
         //Überprüfe spur eins weiter rechts
-        if(checkIfLaneIsBetter(vehicle.getLane() - 1,vehicle,utilizationOnCurrentLane,laneUtilization,indexOfEndingLane,minimumUtilisationOffsetOnNewLane)) return vehicle.getLane() - 1;
+        if(checkIfLaneIsBetter(vehicle.getLane() - 1,vehicle,utilizationOnCurrentLane,laneUtilization,indexOfEndingLane,indexOfTargetLane,minimumUtilisationOffsetOnNewLane)) return vehicle.getLane() - 1;
         //Überprüfe spur eins weiter links
-        if(checkIfLaneIsBetter(vehicle.getLane() + 1 ,vehicle,utilizationOnCurrentLane,laneUtilization,indexOfEndingLane,minimumUtilisationOffsetOnNewLane)) return vehicle.getLane() + 1;
+        if(checkIfLaneIsBetter(vehicle.getLane() + 1 ,vehicle,utilizationOnCurrentLane,laneUtilization,indexOfEndingLane,indexOfTargetLane,minimumUtilisationOffsetOnNewLane)) return vehicle.getLane() + 1;
         return vehicle.getLane();
     }
 
-    public static boolean checkIfLaneIsBetter(int potentialLane,SimVehicle vehicle,int utilizationOnCurrentLane,HashMap<Integer,Integer> laneUtilization,int indexOfEndingLane,double minimumUtilisationOffsetOnNewLane){
+    public static boolean checkIfLaneIsBetter(int potentialLane,SimVehicle vehicle,int utilizationOnCurrentLane,HashMap<Integer,Integer> laneUtilization,int indexOfEndingLane, int indexOfTargetLane, double minimumUtilisationOffsetOnNewLane){
+        //Im bereich einer endenden Spur wird weder auf die Target noch die Ending lane gewechselt
+        if(potentialLane == indexOfTargetLane && vehicle.getLane() != indexOfEndingLane && laneIsEnding(vehicle,indexOfEndingLane)) return false;
         return  (potentialLane >= 0 && potentialLane < vehicle.getNumberOfLanes() && potentialLane != indexOfEndingLane
                 && (double) utilizationOnCurrentLane / laneUtilization.get(potentialLane) > minimumUtilisationOffsetOnNewLane
                 && !laneIsEnding(vehicle,potentialLane));

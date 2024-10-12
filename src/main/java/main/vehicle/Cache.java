@@ -10,7 +10,7 @@ import java.util.*;
 public class Cache {
     public static HashMap<String, SimVehicle> vehicles = new HashMap<>();
     public static Map<String, List<SimVehicle>> vehicleGrid = new HashMap<>();
-    public static List<TraCICollision> collisions = new ArrayList<>();
+    public static List<MutablePair<TraCICollision,List<SimVehicle>>> collisions = new ArrayList<>();
     public static HashMap<String,Double> roadSpeeds = new HashMap<>();
     public static double cellSizeX = 100;
     public static double cellSizeY = 100;
@@ -44,7 +44,7 @@ public class Cache {
             double currentSpeed = Vehicle.getSpeed(vehicleId);
             vehicle.setCurrentSpeed(currentSpeed);
             vehicle.setTargetSpeed(currentSpeed);
-            vehicle.setMaxVehicleSpeed(Vehicle.getMaxSpeed(vehicleId));
+            //vehicle.setMaxVehicleSpeed(Vehicle.getMaxSpeed(vehicleId));
             vehicle.setMaxRoadSpeed(roadSpeeds.get(Vehicle.getRoadID(vehicleId)));
 
             //Set vehicle leader for separation
@@ -59,7 +59,7 @@ public class Cache {
 
         //Remove collided Vehicles
         Simulation.getCollisions().forEach(traCICollision -> {
-            Cache.collisions.add(traCICollision);
+            Cache.collisions.add(new MutablePair<>(traCICollision,List.of(Cache.vehicles.get(traCICollision.getCollider()),Cache.vehicles.get(traCICollision.getVictim()))));
             Cache.removeVehicle(Cache.vehicles.get(traCICollision.getCollider()), VehicleState.COLLIDED);
             Cache.removeVehicle(Cache.vehicles.get(traCICollision.getVictim()), VehicleState.COLLIDED);
         });
@@ -223,6 +223,7 @@ public class Cache {
             laneDistances.put(laneIndex, distanceToLaneEnd);
         }
 
+        vehicle.setPreviousLane(vehicle.getLane());
         vehicle.setLane(Vehicle.getLaneIndex(vehicleId));
         vehicle.setNumberOfLanes(numLanes);
         vehicle.setDistancesToLaneEnd(laneDistances);
