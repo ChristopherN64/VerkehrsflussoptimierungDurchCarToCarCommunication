@@ -28,6 +28,8 @@ public class SimVehicle {
     private double currentSpeed;
     private double targetSpeed;
     private double maxVehicleSpeed;
+    private double physicalMaxSpeed;
+    private double speedFactor;
     private double maxRoadSpeed;
 
     //Lane / Route Informations
@@ -74,6 +76,18 @@ public class SimVehicle {
         this.messageQueue = new LinkedList<>();
         setVehicleState(VehicleState.NOT_SYNCHRONIZED);
 
+        if(vehicleId.startsWith("normal")){
+            this.maxVehicleSpeed = generateClippedNormalDistribution(new Random(),33, 12.3, 24.3, 50);
+            this.speedFactor = generateClippedNormalDistribution(new Random(),1.2, 0.15, 0.7, 1.5);
+            this.physicalMaxSpeed = 50;
+        }
+        else {
+            this.maxVehicleSpeed = generateClippedNormalDistribution(new Random(),22, 6, 19, 27);
+            this.speedFactor = generateClippedNormalDistribution(new Random(),0.90,0.10,0.80,1.10);
+            this.physicalMaxSpeed = 25;
+        }
+
+
         this.isTraffic = false;
         this.flockingActivationStep = 0;
         this.trafficEstimationsSinceLastChange = new HashMap<>();
@@ -104,10 +118,8 @@ public class SimVehicle {
     public void reinitNormalVehicleBehavior(){
         if(Vehicle.getTypeID(vehicleId).startsWith("normal")){
             Vehicle.setMinGap(vehicleId,2.7);
-            //generateClippedNormalDistribution(new Random(),120, 30, 100, 180)
-            //TODO Speed und Speedfactor zufällig aber pro auto immer gleich initen
-            Vehicle.setMaxSpeed(vehicleId, generateClippedNormalDistribution(new Random(),33, 12.3, 24.3, 50));
-            Vehicle.setSpeedFactor(vehicleId,generateClippedNormalDistribution(new Random(),1.2, 0.15, 0.7, 1.5));
+            Vehicle.setMaxSpeed(vehicleId, maxVehicleSpeed);
+            Vehicle.setSpeedFactor(vehicleId,speedFactor);
             Vehicle.setParameter(vehicleId, "laneChangeModel", "LC2013");
             Vehicle.setParameter(vehicleId, "carFollowModel", "Krauss");
             Vehicle.setParameter(vehicleId, "lcStrategic", "0.8");
@@ -124,8 +136,8 @@ public class SimVehicle {
         else if(Vehicle.getTypeID(vehicleId).startsWith("truck")){
             Vehicle.setMinGap(vehicleId,3.5);
             Vehicle.setLength(vehicleId,12);
-            Vehicle.setMaxSpeed(vehicleId,generateClippedNormalDistribution(new Random(),25, 6, 20, 29));
-            Vehicle.setSpeedFactor(vehicleId,generateClippedNormalDistribution(new Random(),0.90,0.10,0.80,1.10));
+            Vehicle.setMaxSpeed(vehicleId,maxVehicleSpeed);
+            Vehicle.setSpeedFactor(vehicleId,speedFactor);
             Vehicle.setParameter(vehicleId, "laneChangeModel", "LC2013");
             Vehicle.setParameter(vehicleId, "carFollowModel", "Krauss");
             Vehicle.setParameter(vehicleId, "lcStrategic", "0.4");

@@ -320,7 +320,7 @@ public class Flocking {
     private static void calculateVehicleSimulationParams(SimVehicle vehicle){
         emergencyBrakingNeeded = false;
         //Das Flocking strebt maximal eine leicht höhere Geschwindigkeit an ab der es als Stau zählt
-        maxFlockingSpeed = vehicle.getDesiredSpeed() * 1.1;
+        maxFlockingSpeed = Double.min(vehicle.getPhysicalMaxSpeed(),vehicle.getMaxRoadSpeed()) * 1.1;
         //Minimaler Sicherheitsabstand = viertel der Geschwindigkeit in Km/h aber mindestens 10m
         minDistance = (vehicle.getCurrentSpeed() * 3.6) / 4;
         if(minDistance < 4) minDistance = 4;
