@@ -1,6 +1,7 @@
 package main.analytics;
 
 import main.Main;
+import main.consensus.Consensus;
 import main.flocking.Flocking;
 import main.vehicle.Cache;
 import main.vehicle.SimVehicle;
@@ -41,8 +42,8 @@ public class Analyser {
         });
 
         System.out.println("Fertige Fahrzeuge:"+vehicleResults.values().stream().filter(vehicleResult -> vehicleResult.getLastVehicleState() == VehicleState.FINISHED).count());
-        System.out.println("Durchschnittliche Zeit:"+vehicleResults.values().stream().map(vehicleResult -> vehicleResult.getLastStep()-vehicleResult.getCreationStep()).mapToInt(Integer::intValue).average().getAsDouble());
-        System.out.println("Durchschnittliche Zurückgelegte Distanz in Metern:"+vehicleResults.values().stream().map(VehicleResult::getTraveledDistance).filter(d->d>0).mapToDouble(Double::doubleValue).average().getAsDouble());
+        System.out.println("Durchschnittliche Zeit:"+vehicleResults.values().stream().filter(vehicleResult -> vehicleResult.getLastVehicleState() != VehicleState.COLLIDED).map(vehicleResult -> vehicleResult.getLastStep()-vehicleResult.getCreationStep()).mapToInt(Integer::intValue).average().getAsDouble());
+        System.out.println("Durchschnittliche Zurückgelegte Distanz in Metern:"+vehicleResults.values().stream().filter(vehicleResult -> vehicleResult.getLastVehicleState() != VehicleState.COLLIDED).map(VehicleResult::getTraveledDistance).filter(d->d>0).mapToDouble(Double::doubleValue).average().getAsDouble());
         System.out.println("______________________________________________________________________");
         writeAnalyticsToCSV();
     }
@@ -73,12 +74,14 @@ public class Analyser {
                     .count();
 
             double durchschnittlicheZeit = vehicleResults.values().stream()
+                    .filter(vehicleResult -> vehicleResult.getLastVehicleState() != VehicleState.COLLIDED)
                     .map(vehicleResult -> vehicleResult.getLastStep() - vehicleResult.getCreationStep())
                     .mapToInt(Integer::intValue)
                     .average()
                     .orElse(0);
 
             double durchschnittlicheDistanz = vehicleResults.values().stream()
+                    .filter(vehicleResult -> vehicleResult.getLastVehicleState() != VehicleState.COLLIDED)
                     .map(VehicleResult::getTraveledDistance)
                     .filter(d -> d > 0)
                     .mapToDouble(Double::doubleValue)
@@ -101,7 +104,7 @@ public class Analyser {
             sb.append(getAnalysisOfState(VehicleState.IN_DISTANCE)).append(',');
             sb.append(getAnalysisOfState(VehicleState.OUT_OF_DISTANCE)).append(',');
             sb.append(getAnalysisOfState(VehicleState.NO_LEADER)).append(',');
-            sb.append("Radius: "+ Flocking.COHESION_NEIGHBOUR_RADIUS+" "+"Cooldown: "+Flocking.COHESION_LANE_CHANGE_COOLDOWN+" MinOffset: "+Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE);
+            sb.append("Radius: "+ Consensus.NEIGHBOR_RADIUS_FOR_TRAFFIC+" "+"Cooldown: "+Consensus.FLOCKING_DEACTIVATION_COOLDOWN+" MinNumber: "+Consensus.MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC+" Speed Perc: "+Consensus.MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC);
 
 
 

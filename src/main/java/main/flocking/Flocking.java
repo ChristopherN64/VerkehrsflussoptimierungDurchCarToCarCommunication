@@ -36,8 +36,8 @@ public class Flocking {
     public static double seperationPercentageWhenAligmentDecellarate = 0.6;
 
     //Konstanten für Cohesion
-    public static int MAX_DISTANCE_TO_LANE_END = 400;
-    public static double MAX_LANE_CHANGE_DECELERATION = 0.85;
+    public static int MAX_DISTANCE_TO_LANE_END = 500;
+    public static double MAX_LANE_CHANGE_DECELERATION = 0.90;
     public static double MAX_LANE_CHANGE_ACCELERATION = 1.15;
     public static int COHESION_NEIGHBOUR_RADIUS = 400;
     public static double COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE = 1.6;
@@ -45,9 +45,16 @@ public class Flocking {
 
 
     public static void performFlocking(SimVehicle vehicle) {
-        if (vehicle.isTraffic()) {
+        COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE = 1.5;
+        calculateVehicleSimulationParams(vehicle);
+        //Bei endender Spur immer Flocking
+        if(!vehicle.isTraffic() && vehicle.getDistanceToEndOfCurrentLane() < MAX_DISTANCE_TO_LANE_END && vehicle.getDistancesToLaneEnd().values().stream().distinct().count() != 1 && vehicle.getRouteIndex() > 0) {
+            vehicle.setTraffic(true);
+        }
+        if(vehicle.isTraffic()) {
+            double newTargetSpeed = vehicle.getCurrentSpeed();
             String vehicleId = vehicle.getVehicleId();
-            calculateVehicleSimulationParams(vehicle);
+
             //Sumo (normale Fahrer) Steuerung für Fahrzeug deaktivieren
             deactivateSumoVehicleControl(vehicleId);
 
@@ -61,13 +68,13 @@ public class Flocking {
             if(newVehicleSpeedFromAlignment==-1) newVehicleSpeedFromAlignment = newVehicleSpeedFromSeparation;
 
             // Verrechnung von Separation und Alignment
-            double newTargetSpeed;
+            newTargetSpeed = newVehicleSpeedFromSeparation;
             //Alignment beschleunigt, nur wenn Fahrzeug OUT_OF_DISTANCE zum Leader ist
             if(newVehicleSpeedFromSeparation < newVehicleSpeedFromAlignment && vehicle.getVehicleState() == VehicleState.OUT_OF_DISTANCE){
                 newTargetSpeed = (newVehicleSpeedFromSeparation * seperationPercentageWhenAligmentAcellarate + newVehicleSpeedFromAlignment * (1 - seperationPercentageWhenAligmentAcellarate));
             }
             //Alignment bremst.
-            else newTargetSpeed = (newVehicleSpeedFromSeparation * seperationPercentageWhenAligmentDecellarate + newVehicleSpeedFromAlignment * (1 - seperationPercentageWhenAligmentDecellarate));
+            else if(newVehicleSpeedFromSeparation > newVehicleSpeedFromAlignment) newTargetSpeed = (newVehicleSpeedFromSeparation * seperationPercentageWhenAligmentDecellarate + newVehicleSpeedFromAlignment * (1 - seperationPercentageWhenAligmentDecellarate));
 
 
 
@@ -119,9 +126,17 @@ public class Flocking {
 
         //Fahrzeug sollte selber die wechseln da eine andere Spur deutlich weniger ausgelastet ist
         //Berücksichtigt COHESION_LANE_CHANGE_COOLDOWN
+        //Im bereich in dem eine Spur endet ist der Cooldown halbiert und die Auslastungsdifferenz muss kleiner sein
         else {
-            targetLane = getNewTargetLaneByLaneUtilization(vehicle);
-            if(targetLane != vehicle.getLane() && Main.step - vehicle.getStepOfLastLaneChange() > COHESION_LANE_CHANGE_COOLDOWN) vehicle.setLaneChangeNeeded(true);
+            double distanceToNearestLaneEnd = vehicle.getDistancesToLaneEnd().values().stream().min(Double::compareTo).orElse(Double.MAX_VALUE);
+            int indexOfEndingLane = -1;
+            if(distanceToNearestLaneEnd < MAX_DISTANCE_TO_LANE_END){
+                indexOfEndingLane = 2;
+                COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE = 1.2;
+                vehicle.setStepOfLastLaneChange(Main.step - (COHESION_LANE_CHANGE_COOLDOWN / 2));
+            }
+            targetLane = getNewTargetLaneByLaneUtilization(vehicle,indexOfEndingLane);
+            if(targetLane != vehicle.getLane() && (Main.step - vehicle.getStepOfLastLaneChange() > COHESION_LANE_CHANGE_COOLDOWN)) vehicle.setLaneChangeNeeded(true);
         }
 
         //Spurwechsel wenn nötig durchführen
@@ -145,17 +160,35 @@ public class Flocking {
             //Aktiviere Sumo-Spurwechsel bis das Fahrzeug die target Spur erreicht hat
             Vehicle.setLaneChangeMode(vehicleId,-1);
             try {
+
+                Vehicle.setParameter(vehicleId, "lcStrategic", "1");
+                Vehicle.setParameter(vehicleId, "lcCooperative", "1");
+                Vehicle.setParameter(vehicleId, "lcSpeedGain", "1");
+                Vehicle.setParameter(vehicleId, "lcKeepRight", "0");
+                Vehicle.setParameter(vehicleId, "lcAssertive", "0");
                 Vehicle.changeLane(vehicleId,targetLane,1000);
                 vehicle.setStepOfLastLaneChange(Main.step);
             } catch (IllegalArgumentException e){
                 System.out.println("Lane Change failed! Target Lane " + targetLane + " current lane: "+vehicle.getLane()+"  number of Lanes: "+vehicle.getNumberOfLanes());
             }
 
-
-            //Fahrzeug bremst wenn jemand auf der Target Spur das einscheren verhindert
-            if((vehicle.getLeaderOnTargetLane() != null && vehicle.getLeaderOnTargetLane().getRight() < 5)
-                || (vehicle.getFollowerOnTargetLane() != null && vehicle.getFollowerOnTargetLane().getRight() < 3)) {
-                return newTargetSpeedFromPreviousFunctions * MAX_LANE_CHANGE_DECELERATION;
+            if(distanceToEndOfCurrentLane < (double) MAX_DISTANCE_TO_LANE_END / 1.5){
+                //Fahrzeug bremst wenn jemand auf der Target Spur das einscheren verhindert
+                if(vehicle.getLeaderOnTargetLane() != null && vehicle.getLeaderOnTargetLane().getRight() < 5)
+                {
+                    double leaderTargetSpeed = vehicle.getLeaderOnTargetLane().getLeft().getTargetSpeed();
+                    if(leaderTargetSpeed < vehicle.getCurrentSpeed()) {
+                        return vehicle.getCurrentSpeed() * 0.85;
+                    }
+                    else return Double.max(vehicle.getCurrentSpeed() * MAX_LANE_CHANGE_DECELERATION,leaderTargetSpeed * 0.8) ;
+                }
+                else if(vehicle.getFollowerOnTargetLane() != null && vehicle.getFollowerOnTargetLane().getRight() < 3) {
+                    double followerTargetSpeed = vehicle.getFollowerOnTargetLane().getLeft().getTargetSpeed();
+                    if(followerTargetSpeed < vehicle.getCurrentSpeed()) {
+                        return vehicle.getCurrentSpeed() * 0.85;
+                    }
+                    else return Double.max(vehicle.getCurrentSpeed() * MAX_LANE_CHANGE_DECELERATION,followerTargetSpeed * 0.8) ;
+                }
             }
         }
 
@@ -166,28 +199,20 @@ public class Flocking {
         return newTargetSpeedFromPreviousFunctions;
     }
 
-    private static int getNewTargetLaneByLaneUtilization(SimVehicle vehicle){
-        HashMap<Integer,Integer> laneUtilization = getLaneUtilization(vehicle);
+    private static int getNewTargetLaneByLaneUtilization(SimVehicle vehicle,int indexOfEndingLane){
+        HashMap<Integer,Integer> laneUtilization = vehicle.getLaneUtilization();
         int utilizationOnCurrentLane = laneUtilization.get(vehicle.getLane());
         //Überprüfe spur eins weiter rechts
-        if(checkIfLaneIsBetter(vehicle.getLane() - 1,vehicle,utilizationOnCurrentLane,laneUtilization)) return vehicle.getLane() - 1;
+        if(checkIfLaneIsBetter(vehicle.getLane() - 1,vehicle,utilizationOnCurrentLane,laneUtilization,indexOfEndingLane)) return vehicle.getLane() - 1;
         //Überprüfe spur eins weiter links
-        if (checkIfLaneIsBetter(vehicle.getLane() + 1 ,vehicle,utilizationOnCurrentLane,laneUtilization)) return vehicle.getLane() + 1;
+        if(checkIfLaneIsBetter(vehicle.getLane() + 1 ,vehicle,utilizationOnCurrentLane,laneUtilization,indexOfEndingLane)) return vehicle.getLane() + 1;
         return vehicle.getLane();
     }
 
-    public static boolean checkIfLaneIsBetter(int potentialLane,SimVehicle vehicle,int utilizationOnCurrentLane,HashMap<Integer,Integer> laneUtilization){
-        return  (potentialLane > 0 && potentialLane < vehicle.getNumberOfLanes()
+    public static boolean checkIfLaneIsBetter(int potentialLane,SimVehicle vehicle,int utilizationOnCurrentLane,HashMap<Integer,Integer> laneUtilization,int indexOfEndingLane){
+        return  (potentialLane >= 0 && potentialLane < vehicle.getNumberOfLanes() && potentialLane != indexOfEndingLane
                 && (double) utilizationOnCurrentLane / laneUtilization.get(potentialLane) > COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE
                 && vehicle.getDistancesToLaneEnd().get(potentialLane) > MAX_DISTANCE_TO_LANE_END);
-    }
-
-    private static HashMap<Integer, Integer> getLaneUtilization(SimVehicle vehicle) {
-        HashMap<Integer, Integer> laneUtilization = new HashMap<>();
-        List<MutablePair<SimVehicle,Double>> neighbours = Cache.getNeighbors(vehicle.getVehicleId(),COHESION_NEIGHBOUR_RADIUS);
-        neighbours.stream().map(MutablePair::getLeft).forEach(neighbour-> laneUtilization.put(neighbour.getLane(),laneUtilization.getOrDefault(neighbour.getLane(),0) + 1));
-        for(int i = 0; i< vehicle.getNumberOfLanes(); i++) laneUtilization.putIfAbsent(i,0);
-        return laneUtilization;
     }
 
     private static MutablePair<SimVehicle, Double> getLaneChangRelevantNeighbours(SimVehicle simVehicle, int neighbourDirectionLeftRight, int neighbourDirectionFollowerLeader) {
@@ -279,10 +304,15 @@ public class Flocking {
     private static void calculateVehicleSimulationParams(SimVehicle vehicle){
         emergencyBrakingNeeded = false;
         //Das Flocking strebt maximal eine leicht höhere Geschwindigkeit an ab der es als Stau zählt
-        maxFlockingSpeed = Consensus.MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC * vehicle.getDesiredSpeed() * 1.1;
+        maxFlockingSpeed = vehicle.getDesiredSpeed() * 1.1;
         //Minimaler Sicherheitsabstand = viertel der Geschwindigkeit in Km/h aber mindestens 10m
         minDistance = (vehicle.getCurrentSpeed() * 3.6) / 4;
-        if(minDistance < 10) minDistance = 10;
+        if(minDistance < 4) minDistance = 4;
+        //Mindestabstand ist im bereich in dem eine Spur endet höher (15m)
+        if(vehicle.getDistancesToLaneEnd().values().stream().distinct().count() != 1){
+            if(vehicle.getLane() > 0 && vehicle.getDistancesToLaneEnd().get(vehicle.getLane()-1) < (double) MAX_DISTANCE_TO_LANE_END) minDistance = 15;
+            if(vehicle.getLane() < vehicle.getNumberOfLanes() - 1 && vehicle.getDistancesToLaneEnd().get(vehicle.getLane() + 1) < (double) MAX_DISTANCE_TO_LANE_END) minDistance = 15;
+        }
         //Der ideale Abstand ist zwischen Mindestabstand und Mindestabstand * MAX_MIN_DISTANCE_DIFF
         maxDistance = minDistance * MAX_MIN_DISTANCE_DIFF;
     }

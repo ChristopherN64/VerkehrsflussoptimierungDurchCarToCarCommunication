@@ -12,16 +12,16 @@ import java.util.List;
 
 public class Consensus {
     //Konstanten für Gossip-Algorithmus
-    private static final double PERCENTAGE_OF_NEIGHBORS_FOR_GOSSIP_ALGORITHM = 0.8;
-    private static final double NEIGHBOR_RADIUS_FOR_GOSSIP_ALGORITHM = 50;
+    private static final double PERCENTAGE_OF_NEIGHBORS_FOR_GOSSIP_ALGORITHM = 1;
+    private static final double NEIGHBOR_RADIUS_FOR_GOSSIP_ALGORITHM = 100;
     private static final double CHANGE_OF_OPINION_THRESHOLD = 0.5;
-    private static final double FLOCKING_DEACTIVATION_COOLDOWN = 30;
+    public static double FLOCKING_DEACTIVATION_COOLDOWN = 30;
     private static final double NEIGHBOUR_ESTIMATION_BULK_SIZE = 5;
 
     //Konstanten für Traffic
-    public static final double  MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC = 0.9;
-    private static final double NEIGHBOR_RADIUS_FOR_TRAFFIC = 35;
-    private static final double MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC = 3;
+    public static double MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC = 0.7;
+    public static double NEIGHBOR_RADIUS_FOR_TRAFFIC = 50;
+    public static double MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC = 2;
 
     public static void simulateConsensus(SimVehicle vehicle) {
         //Calculate own traffic estimation
@@ -37,6 +37,12 @@ public class Consensus {
     public static boolean calculateOwnTrafficEstimation(SimVehicle vehicle){
         double speedPercentage = vehicle.getCurrentSpeed() / vehicle.getDesiredSpeed();
         double numberOfNeighbours = Cache.getNeighbors(vehicle.getVehicleId(),NEIGHBOR_RADIUS_FOR_TRAFFIC).size();
+
+        /*
+        return (speedPercentage < MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC && numberOfNeighbours > MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC)
+                || (vehicle.getLaneUtilization().get(vehicle.getLane()) > 2  && (double) vehicle.getLaneUtilization().values().stream().max(Integer::compareTo).orElse(0) / vehicle.getLaneUtilization().get(vehicle.getLane()) > 2 );
+         */
+
         return (speedPercentage < MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC && numberOfNeighbours > MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC);
     }
 

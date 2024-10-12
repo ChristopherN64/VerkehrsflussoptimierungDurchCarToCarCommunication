@@ -8,21 +8,49 @@
     <vType id="normal_car" length="5.00" maxSpeed="70.00" guiShape="passenger" accel="2.6" decel="4.5"/>
     <vType id="truck_with_trailer" length="15.00" maxSpeed="50.00" guiShape="truck" accel="1.0" decel="2.5"/>
     <!-- Vehicles, persons and containers (sorted by depart) -->
-    <flow id="normal_0" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="entry" to="E15" end="10.00" number="100"/>
-    <flow id="truck_flow_ß" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="entry" to="E15" end="10.00" number="50"/>
 
-    <flow id="normal_1" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E2" to="E15" end="10.00" number="100"/>
-    <flow id="truck_flow_1" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E2" to="E15" end="10.00" number="50"/>
+    <flow id="normal_0" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="entry" to="E15" end="10.00" number="20"/>
+    <flow id="truck_flow_0" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="entry" to="E15" end="10.00" number="10"/>
 
-    <flow id="normal_2" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E4" to="E15" end="10.00" number="100"/>
-    <flow id="truck_flow_2" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E4" to="E15" end="10.00" number="50"/>
+    <flow id="normal_1" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E1" to="E15" end="1.00" number="20"/>
+    <flow id="truck_flow_1" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E1" to="E15" end="1.00" number="10"/>
 
-    <flow id="normal_3" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E6" to="E15" end="10.00" number="100"/>
-    <flow id="truck_flow_3" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E6" to="E15" end="10.00" number="50"/>
+    <flow id="normal_2" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E2" to="E15" end="1.00" number="20"/>
+    <flow id="truck_flow_2" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E2" to="E15" end="1.00" number="10"/>
 
-    <flow id="normal_4" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E8" to="E15" end="10.00" number="100"/>
-    <flow id="truck_flow_4" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E8" to="E15" end="10.00" number="50"/>
+    <flow id="normal_3" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E3" to="E2" end="1.00" number="20"/>
+    <flow id="truck_flow_3" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E3" to="E2" end="1.00" number="10"/>
 
-    <flow id="normal__5" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E10" to="E15" end="10.00" number="100"/>
-    <flow id="truck_flow_5" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E10" to="E15" end="10.00" number="50"/>
+    <flow id="normal_4" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E4" to="E3" end="1.00" number="20"/>
+    <flow id="truck_flow_4" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E4" to="E3" end="1.00" number="10"/>
+
+    <flow id="normal_5" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E5" to="E4" end="1.00" number="20"/>
+    <flow id="truck_flow_5" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E5" to="E4" end="1.00" number="10"/>
+
+    <flow id="normal_6" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E6" to="E5" end="1.00" number="20"/>
+    <flow id="truck_flow_6" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E6" to="E5" end="1.00" number="10"/>
+
+    <flow id="normal_7" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E7" to="E6" end="1.00" number="20"/>
+    <flow id="truck_flow_7" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E7" to="E6" end="1.00" number="10"/>
+
+    <flow id="normal_8" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E8" to="E7" end="1.00" number="20"/>
+    <flow id="truck_flow_8" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E8" to="E7" end="1.00" number="10"/>
+
+    <flow id="normal_9" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E9" to="E8" end="1.00" number="20"/>
+    <flow id="truck_flow_9" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E9" to="E8" end="1.00" number="10"/>
+
+    <flow id="normal_10" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E10" to="E9" end="1.00" number="20"/>
+    <flow id="truck_flow_10" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E10" to="E9" end="1.00" number="10"/>
+
+    <flow id="normal_11" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E11" to="E10" end="1.00" number="20"/>
+    <flow id="truck_flow_11" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E11" to="E10" end="1.00" number="10"/>
+
+    <flow id="normal_12" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E12" to="E11" end="1.00" number="20"/>
+    <flow id="truck_flow_12" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E12" to="E11" end="1.00" number="10"/>
+
+    <flow id="normal_13" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E13" to="E12" end="1.00" number="20"/>
+    <flow id="truck_flow_13" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E13" to="E12" end="1.00" number="10"/>
+
+    <flow id="normal_14" type="normal_car" begin="0.00" departLane="0" departPos="0.00" departSpeed="avg" from="E14" to="E13" end="1.00" number="20"/>
+    <flow id="truck_flow_14" type="truck_with_trailer" begin="0.00" departLane="0" departSpeed="avg" from="E14" to="E13" end="1.00" number="10"/>
 </routes>

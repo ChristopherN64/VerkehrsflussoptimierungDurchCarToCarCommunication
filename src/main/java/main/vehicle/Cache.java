@@ -1,6 +1,7 @@
 package main.vehicle;
 
 import main.analytics.Analyser;
+import main.flocking.Flocking;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.eclipse.sumo.libtraci.*;
 
@@ -68,6 +69,16 @@ public class Cache {
             if(!vehicleIds.contains(vehicle.getVehicleId())) return setVehicleRemoved(vehicle, VehicleState.FINISHED);
             return false;
         });
+
+        vehicles.values().forEach(vehicle -> vehicle.setLaneUtilization(getLaneUtilization(vehicle)));
+    }
+
+    private static HashMap<Integer, Integer> getLaneUtilization(SimVehicle vehicle) {
+        HashMap<Integer, Integer> laneUtilization = new HashMap<>();
+        List<MutablePair<SimVehicle,Double>> neighbours = Cache.getNeighbors(vehicle.getVehicleId(), Flocking.COHESION_NEIGHBOUR_RADIUS);
+        neighbours.stream().map(MutablePair::getLeft).forEach(neighbour-> laneUtilization.put(neighbour.getLane(),laneUtilization.getOrDefault(neighbour.getLane(),0) + 1));
+        for(int i = 0; i< vehicle.getNumberOfLanes(); i++) laneUtilization.putIfAbsent(i,0);
+        return laneUtilization;
     }
 
     public static void removeVehicle(SimVehicle vehicle,VehicleState vehicleState){
