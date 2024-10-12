@@ -79,7 +79,7 @@ public class SimVehicle {
         this.numberOfEmergencyBraking=0;
 
         this.laneChangeNeeded=false;
-        this.stepOfLastLaneChange=Integer.MAX_VALUE;
+        this.stepOfLastLaneChange=0;
 
         reinitNormalVehicleBehavior();
     }
@@ -101,10 +101,6 @@ public class SimVehicle {
     }
 
     public void reinitNormalVehicleBehavior(){
-
-        Vehicle.setSpeed(vehicleId,-1);
-        Vehicle.setLaneChangeMode(vehicleId,-1);
-
         if(Vehicle.getTypeID(vehicleId).startsWith("normal")){
             Vehicle.setMinGap(vehicleId,2.7);
             //generateClippedNormalDistribution(new Random(),120, 30, 100, 180)
@@ -159,7 +155,7 @@ public class SimVehicle {
     }
 
     public void emergencyBrake() {
-        this.numberOfEmergencyBraking++;
+        if(currentSpeed > 0) this.numberOfEmergencyBraking++;
     }
 
     public double getDistanceToEndOfCurrentLane() {
