@@ -18,7 +18,7 @@ public class Flocking {
     //Physikalische Konstanten
     private static final double MAX_SPEED_INCREMENT = 2.5; // Maximale Geschwindigkeitssteigerung pro Zeitschritt in m/s
     private static final double MAX_SPEED_DECREMENT = 4.5; // Maximale Geschwindigkeitsreduktion pro Zeitschritt in m/s
-    private static final double MAX_EMERGENCY_SPEED_DECREMENT = 12; // Maximale Geschwindigkeitsreduktion pro Zeitschritt bei Gefahrenbremsung in m/s
+    private static final double MAX_EMERGENCY_SPEED_DECREMENT = 10; // Maximale Geschwindigkeitsreduktion pro Zeitschritt bei Gefahrenbremsung in m/s
 
     // Konstanten für die Separation
     private static final double MAX_MIN_DISTANCE_DIFF = 1.5; // Gewünschter Abstand in Metern
@@ -166,7 +166,6 @@ public class Flocking {
             double distanceToLeaderOnTargetLane = vehicle.getLeaderOnTargetLane() != null ? vehicle.getLeaderOnTargetLane().getRight() : Double.MAX_VALUE;
             double distanceToFollowerOnTargetLane = vehicle.getFollowerOnTargetLane() != null ? vehicle.getFollowerOnTargetLane().getRight() : Double.MAX_VALUE;
             if(distanceToLeaderOnTargetLane > 3 && distanceToFollowerOnTargetLane > 5){
-                //Aktiviere Sumo-Spurwechsel bis das Fahrzeug die target Spur erreicht hat
                 Vehicle.setLaneChangeMode(vehicleId,-1);
                 try {
                     Vehicle.setParameter(vehicleId, "laneChangeModel", "LC2013");
@@ -296,7 +295,7 @@ public class Flocking {
         //Calculate newSpeed (unter berücksichtigung der Maximalen geschwindigkeit + MAX_DESIRED_SPEED_OFFSET und nicht negativ)
         double newTargetSpeed = vehicle.getCurrentSpeed() + acceleration;
         if(newTargetSpeed < 0) newTargetSpeed = 0;
-        if(newTargetSpeed > vehicle.getDesiredSpeed() * MAX_DESIRED_SPEED_OFFSET) newTargetSpeed = vehicle.getDesiredSpeed() * MAX_DESIRED_SPEED_OFFSET;
+        if(newTargetSpeed > vehicle.getMaxAllowedAndPhysicalSpeed() * MAX_DESIRED_SPEED_OFFSET) newTargetSpeed = vehicle.getMaxAllowedAndPhysicalSpeed() * MAX_DESIRED_SPEED_OFFSET;
         if(newTargetSpeed > maxFlockingSpeed) newTargetSpeed = maxFlockingSpeed;
 
 
@@ -320,7 +319,7 @@ public class Flocking {
     private static void calculateVehicleSimulationParams(SimVehicle vehicle){
         emergencyBrakingNeeded = false;
         //Das Flocking strebt maximal eine leicht höhere Geschwindigkeit an ab der es als Stau zählt
-        maxFlockingSpeed = Double.min(vehicle.getPhysicalMaxSpeed(),vehicle.getMaxRoadSpeed()) * 1.1;
+        maxFlockingSpeed = vehicle.getMaxAllowedAndPhysicalSpeed() * 1.1;
         //Minimaler Sicherheitsabstand = viertel der Geschwindigkeit in Km/h aber mindestens 10m
         minDistance = (vehicle.getCurrentSpeed() * 3.6) / 4;
         if(minDistance < 4) minDistance = 4;

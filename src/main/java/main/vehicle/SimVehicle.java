@@ -45,6 +45,7 @@ public class SimVehicle {
     private boolean isTraffic;
     private HashMap<Boolean,Integer> trafficEstimationsSinceLastChange;
     private int flockingActivationStep;
+    private int flockingDeactivationStep;
     private MutablePair<SimVehicle,Double> leaderWithDistance;
 
     //Cohesion Informations
@@ -58,6 +59,7 @@ public class SimVehicle {
     private int numberOfEmergencyBraking;
 
     public void simulateStep(){
+        reinitNormalVehicleBehavior();
         if(Main.SIMULATE_CONSENSUS)  Consensus.simulateConsensus(this);
         else setTraffic(true);
 
@@ -112,12 +114,17 @@ public class SimVehicle {
         if(this.isTraffic == traffic) return;
         this.isTraffic = traffic;
         if(this.isTraffic) flockingActivationStep = Main.step;
-        if(!this.isTraffic) reinitNormalVehicleBehavior();
+        if(!this.isTraffic) {
+            flockingDeactivationStep = Main.step;
+            reinitNormalVehicleBehavior();
+        }
     }
 
     public void reinitNormalVehicleBehavior(){
+        Vehicle.setSpeedMode(vehicleId, 31);
+        //Vehicle.setLaneChangeMode(vehicleId, 1621);
         if(Vehicle.getTypeID(vehicleId).startsWith("normal")){
-            Vehicle.setMinGap(vehicleId,2.7);
+            Vehicle.setMinGap(vehicleId,3);
             Vehicle.setMaxSpeed(vehicleId, maxVehicleSpeed);
             Vehicle.setSpeedFactor(vehicleId,speedFactor);
             Vehicle.setParameter(vehicleId, "laneChangeModel", "LC2013");
@@ -129,7 +136,7 @@ public class SimVehicle {
             Vehicle.setParameter(vehicleId, "lcAssertive", "0.7");
             Vehicle.setAccel(vehicleId,2.8);
             Vehicle.setDecel(vehicleId,4.7);
-            Vehicle.setEmergencyDecel(vehicleId,8);
+            Vehicle.setEmergencyDecel(vehicleId,12);
             Vehicle.setParameter(vehicleId, "sigma", "0.8");
             Vehicle.setTau(vehicleId,1.4);
         }
@@ -165,6 +172,10 @@ public class SimVehicle {
 
     public double getDesiredSpeed() {
         return Double.min(maxVehicleSpeed,maxRoadSpeed);
+    }
+
+    public double getMaxAllowedAndPhysicalSpeed(){
+        return Double.min(physicalMaxSpeed,maxRoadSpeed);
     }
 
     public void emergencyBrake() {

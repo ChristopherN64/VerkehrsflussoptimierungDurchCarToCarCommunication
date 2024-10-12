@@ -13,15 +13,15 @@ import java.util.List;
 public class Consensus {
     //Konstanten für Gossip-Algorithmus
     private static final double PERCENTAGE_OF_NEIGHBORS_FOR_GOSSIP_ALGORITHM = 1;
-    private static final double NEIGHBOR_RADIUS_FOR_GOSSIP_ALGORITHM = 100;
+    private static final double NEIGHBOR_RADIUS_FOR_GOSSIP_ALGORITHM = 50;
     private static final double CHANGE_OF_OPINION_THRESHOLD = 0.5;
-    public static double FLOCKING_DEACTIVATION_COOLDOWN = 30;
-    private static final double NEIGHBOUR_ESTIMATION_BULK_SIZE = 5;
+    public static double FLOCKING_DEACTIVATION_COOLDOWN = 60;
+    private static final double NEIGHBOUR_ESTIMATION_BULK_SIZE = 3;
 
     //Konstanten für Traffic
     public static double MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC = 0.7;
     public static double NEIGHBOR_RADIUS_FOR_TRAFFIC = 50;
-    public static double MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC = 2;
+    public static double MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC = 3;
 
     public static void simulateConsensus(SimVehicle vehicle) {
         //Calculate own traffic estimation
@@ -63,12 +63,11 @@ public class Consensus {
         //Get traffic estimations of neighbours (From CarToXMessages)
         HashMap<Boolean, Integer> neighbourEstimations = Consensus.getNeighbourTrafficEstimation(vehicle);
         //Put own estimation
-        //TODO hier eigene Estimation evtl. höher gewichten
-        putTrafficEstimationInBulk(vehicle,ownTrafficEstimation);
+        putTrafficEstimationInBulk(vehicle,ownTrafficEstimation, 2);
         //Put Neighbour estimation
         int numberOfEstimations = neighbourEstimations.get(false) + neighbourEstimations.get(true);
-        if(((double) neighbourEstimations.get(true) / numberOfEstimations > CHANGE_OF_OPINION_THRESHOLD)) putTrafficEstimationInBulk(vehicle,true);
-        else if(((double) neighbourEstimations.get(false) / numberOfEstimations > CHANGE_OF_OPINION_THRESHOLD)) putTrafficEstimationInBulk(vehicle,false);
+        putTrafficEstimationInBulk(vehicle,true,3);
+        putTrafficEstimationInBulk(vehicle,neighbourEstimations);
 
         setIsTrafficWithDeactivationCooldown(vehicle);
         if(Main.step % NEIGHBOUR_ESTIMATION_BULK_SIZE == 0) vehicle.setTrafficEstimationsSinceLastChange(new HashMap<>());
@@ -95,11 +94,15 @@ public class Consensus {
 
     public static void setIsTraffic(SimVehicle vehicle, boolean isTraffic) {
         vehicle.setTraffic(isTraffic);
-        //TODO evtl. nicht erst bei change sondern nach eigenem Cooldown zurücksetzen
         if(isTraffic != vehicle.isTraffic()) vehicle.setTrafficEstimationsSinceLastChange(new HashMap<>());
     }
 
-    public static void putTrafficEstimationInBulk(SimVehicle vehicle,boolean estimation) {
-        vehicle.getTrafficEstimationsSinceLastChange().put(estimation, vehicle.getTrafficEstimationsSinceLastChange().getOrDefault(estimation, 0) + 1);
+    public static void putTrafficEstimationInBulk(SimVehicle vehicle, boolean estimation, int count) {
+        vehicle.getTrafficEstimationsSinceLastChange().put(estimation, vehicle.getTrafficEstimationsSinceLastChange().getOrDefault(estimation, 0) + count);
+    }
+
+
+    private static void putTrafficEstimationInBulk(SimVehicle vehicle, HashMap<Boolean, Integer> neighbourEstimations) {
+        neighbourEstimations.forEach((key, value) -> vehicle.getTrafficEstimationsSinceLastChange().put(key, vehicle.getTrafficEstimationsSinceLastChange().getOrDefault(key,0) + neighbourEstimations.getOrDefault(key,2)));
     }
 }

@@ -10,10 +10,13 @@ public class Debugger {
     public static void debugSeparation(){
         Vehicle.getIDList().forEach(vehicleId -> {
             SimVehicle simVehicle = Cache.vehicles.get(vehicleId);
-            if(!simVehicle.isTraffic()) Vehicle.setColor(vehicleId, new TraCIColor(0, 0, 255));
-            else if(simVehicle.getVehicleState() == VehicleState.UNDER_DISTANCE) Vehicle.setColor(vehicleId, new TraCIColor(255, 0, 0));
-            else if(simVehicle.getVehicleState() == VehicleState.IN_DISTANCE) Vehicle.setColor(vehicleId, new TraCIColor(0, 255, 0));
-            else if(simVehicle.getVehicleState() == VehicleState.OUT_OF_DISTANCE) Vehicle.setColor(vehicleId, new TraCIColor(255, 255, 0));
+            if(simVehicle != null){
+                if(!simVehicle.isTraffic()) Vehicle.setColor(vehicleId, new TraCIColor(0, 0, 255));
+                else if(simVehicle.getVehicleState() == VehicleState.UNDER_DISTANCE) Vehicle.setColor(vehicleId, new TraCIColor(255, 0, 0));
+                else if(simVehicle.getVehicleState() == VehicleState.IN_DISTANCE) Vehicle.setColor(vehicleId, new TraCIColor(0, 255, 0));
+                else if(simVehicle.getVehicleState() == VehicleState.OUT_OF_DISTANCE) Vehicle.setColor(vehicleId, new TraCIColor(255, 255, 0));
+
+            }
         });
     }
 

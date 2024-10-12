@@ -14,8 +14,8 @@ import java.util.List;
 
 public class Main {
     public static SimulationSzenario SIMULATION_SZENARIO;
-    public static String version = "300 steps";
-    public static boolean SIMULATE_CONSENSUS = false;
+    public static String version = "300 steps mit konsens";
+    public static boolean SIMULATE_CONSENSUS = true;
     public static boolean SIMULATE_FLOCKING = true;
     public static final String SIMULATION_DELAY = "0";
     public static final int SIMULATION_STEPS = 300;
