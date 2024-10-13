@@ -9,9 +9,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.eclipse.sumo.libtraci.StringDoublePairVector;
 import org.eclipse.sumo.libtraci.Vehicle;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.OptionalDouble;
+import java.util.*;
 
 public class Flocking {
 
@@ -127,13 +125,13 @@ public class Flocking {
         //Berücksichtigt COHESION_LANE_CHANGE_COOLDOWN
         //Im bereich in dem eine Spur endet ist der Cooldown halbiert und die Auslastungsdifferenz muss kleiner sein
         else {
-            double distanceToNearestLaneEnd = vehicle.getDistancesToLaneEnd().values().stream().min(Double::compareTo).orElse(Double.MAX_VALUE);
-            int indexOfEndingLane = -1;
+            Map.Entry<Integer,Double> endingLane = vehicle.getDistancesToLaneEnd().entrySet().stream().min(Comparator.comparingDouble(Map.Entry::getValue)).orElse(new MutablePair<>(-1,Double.MAX_VALUE));
+            int indexOfEndingLane = endingLane.getKey();
             int indexOfTargetLane = -2;
             double minimumUtilisationOffsetOnNewLane = COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE;
-            if(distanceToNearestLaneEnd < MAX_DISTANCE_TO_LANE_END && vehicle.getDistancesToLaneEnd().values().stream().distinct().count() != 1){
-                indexOfEndingLane = 2;
-                indexOfTargetLane = 1;
+            if(endingLane.getValue() < MAX_DISTANCE_TO_LANE_END && vehicle.getDistancesToLaneEnd().values().stream().distinct().count() != 1){
+                if(indexOfEndingLane > 0) indexOfTargetLane = indexOfEndingLane - 1;
+                else indexOfEndingLane = 1;
                 minimumUtilisationOffsetOnNewLane = 1.4;
                 if(Main.step - vehicle.getStepOfLastLaneChange() < COHESION_LANE_CHANGE_COOLDOWN / 2) {
                     vehicle.setStepOfLastLaneChange(Main.step - (COHESION_LANE_CHANGE_COOLDOWN / 2));
@@ -227,7 +225,9 @@ public class Flocking {
     }
 
     public static boolean laneIsEnding(SimVehicle vehicle, int lane){
-        return vehicle.getDistancesToLaneEnd().get(lane) < MAX_DISTANCE_TO_LANE_END && vehicle.getDistancesToLaneEnd().values().stream().distinct().count() != 1;
+        return vehicle.getDistancesToLaneEnd().get(lane) < MAX_DISTANCE_TO_LANE_END
+                && vehicle.getDistancesToLaneEnd().values().stream().distinct().count() != 1
+                && vehicle.getDistancesToLaneEnd().entrySet().stream().min(Comparator.comparingDouble(Map.Entry::getValue)).orElse(new MutablePair<>(-1,Double.MAX_VALUE)).getKey() == lane;
     }
 
     private static MutablePair<SimVehicle, Double> getLaneChangRelevantNeighbours(SimVehicle simVehicle, int neighbourDirectionLeftRight, int neighbourDirectionFollowerLeader) {

@@ -117,6 +117,7 @@ public class SimVehicle {
         if(!this.isTraffic) {
             flockingDeactivationStep = Main.step;
             reinitNormalVehicleBehavior();
+            Vehicle.setSpeed(vehicleId,maxVehicleSpeed);
         }
     }
 

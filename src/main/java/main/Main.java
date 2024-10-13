@@ -22,7 +22,7 @@ public class Main {
     public static int step;
 
     public static void main(String[] args) {
-        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.ENDE_EINER_SPUR);
+        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.ENDE_VON_ZWEI_SPUREN);
 
         simulationSzenarios.forEach(simulationSzenario -> {
             SIMULATION_SZENARIO = simulationSzenario;
@@ -79,7 +79,7 @@ public class Main {
                 "--start",                // Simulation automatisch starten
                 "--delay", SIMULATION_DELAY,         // Delay von 500 ms
                 "-c", ".\\src\\main\\sumo\\" + szenario.folder + "\\sumo_setting.sumocfg",  // Konfigurationsdatei
-                 "--quit-on-end"
+                "--quit-on-end"
         }));
 
         System.out.println("Simulations-Initialisierung abgeschlossen");

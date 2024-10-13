@@ -13,7 +13,7 @@ public class Cache {
     public static List<MutablePair<TraCICollision,List<SimVehicle>>> collisions = new ArrayList<>();
     public static HashMap<String,Double> roadSpeeds = new HashMap<>();
     public static double cellSizeX = 100;
-    public static double cellSizeY = 100;
+    public static double cellSizeY = 40;
 
 
     public static void initMap() {
