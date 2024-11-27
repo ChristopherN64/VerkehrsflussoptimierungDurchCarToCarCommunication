@@ -19,7 +19,7 @@ public class Flocking {
     private static final double MAX_EMERGENCY_SPEED_DECREMENT = 10; // Maximale Geschwindigkeitsreduktion pro Zeitschritt bei Gefahrenbremsung in m/s
 
     // Konstanten für die Separation
-    private static final double MAX_MIN_DISTANCE_DIFF = 1.5; // Gewünschter Abstand in Metern
+    public static double MAX_MIN_DISTANCE_DIFF = 1.5; // Gewünschter Abstand in Metern
     private static final double MIN_SPEED_DIFF_UNDER_DISTANCE = 0.95; // Gewünschter Abstand in Metern
     private static final double MAX_SPEED_DIFF_TO_LEADER = 1.05; // Gewünschter Abstand in Metern
     protected static final double MAX_DESIRED_SPEED_OFFSET = 1.1;

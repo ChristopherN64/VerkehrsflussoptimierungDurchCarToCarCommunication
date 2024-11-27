@@ -2,6 +2,7 @@ package main.consensus;
 
 import main.Main;
 import main.communication.CarToXMessage;
+import main.stauerkennung.Stauerkennung;
 import main.vehicle.SimVehicle;
 import main.vehicle.Cache;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -18,33 +19,16 @@ public class Consensus {
     public static double FLOCKING_DEACTIVATION_COOLDOWN = 60;
     private static final double NEIGHBOUR_ESTIMATION_BULK_SIZE = 3;
 
-    //Konstanten für Traffic
-    public static double MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC = 0.7;
-    public static double NEIGHBOR_RADIUS_FOR_TRAFFIC = 50;
-    public static double MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC = 3;
-
     public static void simulateConsensus(SimVehicle vehicle) {
         //Calculate own traffic estimation
-        boolean ownTrafficEstimation = Consensus.calculateOwnTrafficEstimation(vehicle);
+        boolean ownTrafficEstimation = Stauerkennung.calculateOwnTrafficEstimation(vehicle);
         //Send own traffic estimation to PERCENTAGE_OF_NEIGHBORS
         sendMessageToPercentageNumberOfNeighbors(vehicle.getVehicleId(), String.valueOf(ownTrafficEstimation));
         //Set own isTraffic based on own traffic estimation and neighbour traffic estimation
         updateOwnTrafficEstimation(vehicle,ownTrafficEstimation);
     }
 
-    //Calculate own Traffic estimation based on speed and number of Neighbours in radius NEIGHBOR_RADIUS_FOR_TRAFFIC
-    //Traffic estimation is true if one of them is greater than the threshold
-    public static boolean calculateOwnTrafficEstimation(SimVehicle vehicle){
-        double speedPercentage = vehicle.getCurrentSpeed() / vehicle.getDesiredSpeed();
-        double numberOfNeighbours = Cache.getNeighbors(vehicle.getVehicleId(),NEIGHBOR_RADIUS_FOR_TRAFFIC).size();
 
-        /*
-        return (speedPercentage < MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC && numberOfNeighbours > MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC)
-                || (vehicle.getLaneUtilization().get(vehicle.getLane()) > 2  && (double) vehicle.getLaneUtilization().values().stream().max(Integer::compareTo).orElse(0) / vehicle.getLaneUtilization().get(vehicle.getLane()) > 2 );
-         */
-
-        return (speedPercentage < MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC && numberOfNeighbours > MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC);
-    }
 
     public static HashMap<Boolean,Integer> getNeighbourTrafficEstimation(SimVehicle vehicle) {
         HashMap<Boolean,Integer> neighbourEstimations = new HashMap<>();

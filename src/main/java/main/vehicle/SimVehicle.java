@@ -155,7 +155,7 @@ public class SimVehicle {
             Vehicle.setParameter(vehicleId, "lcAssertive", "0.4");
             Vehicle.setAccel(vehicleId,1.0);
             Vehicle.setDecel(vehicleId,3.5);
-            Vehicle.setEmergencyDecel(vehicleId,8);
+            Vehicle.setEmergencyDecel(vehicleId,12);
             Vehicle.setParameter(vehicleId, "sigma", "0.5");
             Vehicle.setTau(vehicleId,2.0);
         }

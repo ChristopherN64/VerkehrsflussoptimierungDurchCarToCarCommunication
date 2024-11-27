@@ -4,38 +4,48 @@ import main.analytics.Analyser;
 import main.consensus.Consensus;
 import main.debugger.Debugger;
 import main.flocking.Flocking;
-import main.vehicle.SimVehicle;
+import main.stauerkennung.Stauerkennung;
 import main.vehicle.Cache;
-import main.vehicle.VehicleState;
 import org.eclipse.sumo.libtraci.*;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class Main {
-    public static SimulationSzenario SIMULATION_SZENARIO;
-    public static String version = "300 steps mit konsens";
+    public static SimulationScenario SIMULATION_SCENARIO;
+    public static String version = "eval";
     public static boolean SIMULATE_CONSENSUS = true;
     public static boolean SIMULATE_FLOCKING = true;
     public static final String SIMULATION_DELAY = "0";
-    public static final int SIMULATION_STEPS = 300;
+    public static final int SIMULATION_STEPS = 250;
     public static int step;
 
     public static void main(String[] args) {
-        List<SimulationSzenario> simulationSzenarios = List.of(SimulationSzenario.ENDE_VON_ZWEI_SPUREN);
+        List<SimulationScenario> simulationScenarios = List.of(SimulationScenario.ENDE_VON_ZWEI_SPUREN);
 
-        simulationSzenarios.forEach(simulationSzenario -> {
-            SIMULATION_SZENARIO = simulationSzenario;
-            try {
-                simulateSzenario(simulationSzenario);
-            } catch (Exception e) {
-                e.printStackTrace();
+        for (Stauerkennung.NEIGHBOR_RADIUS_FOR_TRAFFIC = 40; Stauerkennung.NEIGHBOR_RADIUS_FOR_TRAFFIC <= 60; Stauerkennung.NEIGHBOR_RADIUS_FOR_TRAFFIC += 10) {
+            for (Consensus.FLOCKING_DEACTIVATION_COOLDOWN = 20; Consensus.FLOCKING_DEACTIVATION_COOLDOWN <= 80; Consensus.FLOCKING_DEACTIVATION_COOLDOWN += 20) {
+                for (Flocking.MAX_MIN_DISTANCE_DIFF = 1.2; Flocking.MAX_MIN_DISTANCE_DIFF <= 1.8; Flocking.MAX_MIN_DISTANCE_DIFF += 0.2) {
+                    for (Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE = 1.2; Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE <= 1.8; Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE += 0.2) {
+                        for (Flocking.COHESION_LANE_CHANGE_COOLDOWN = 10; Flocking.COHESION_LANE_CHANGE_COOLDOWN <= 30; Flocking.COHESION_LANE_CHANGE_COOLDOWN += 10) {
+                            for (Flocking.seperationPercentageWhenAligmentAcellarate = 0.2; Flocking.seperationPercentageWhenAligmentAcellarate <= 0.8; Flocking.seperationPercentageWhenAligmentAcellarate += 0.2) {
+                                SIMULATE_FLOCKING = true;
+                                SIMULATE_CONSENSUS = true;
+                                SIMULATION_SCENARIO = simulationScenarios.getFirst();
+                                try {
+                                    simulateScenario(simulationScenarios.getFirst());
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        });
+        }
     }
 
-    public static void simulateSzenario(SimulationSzenario szenario) {
-        initSimulation(szenario);
+    public static void simulateScenario(SimulationScenario scenario) {
+        initSimulation(scenario);
         Cache.initMap();
         Analyser.init();
         // Schleife für die Simulationsschritte
@@ -51,7 +61,7 @@ public class Main {
         }
 
         // Simulation schließen
-        stopSimulationAndSumo();
+        stopSimulation();
         Analyser.printAnalytics();
     }
 
@@ -68,7 +78,7 @@ public class Main {
 
 
     //Initialisiert Simulation
-    private static void initSimulation(SimulationSzenario szenario) {
+    private static void initSimulation(SimulationScenario scenario) {
         System.out.println("Initialisiere Simulation");
 
         System.loadLibrary("libtracijni");
@@ -78,14 +88,14 @@ public class Main {
                 "sumo-gui",               // SUMO-GUI starten
                 "--start",                // Simulation automatisch starten
                 "--delay", SIMULATION_DELAY,         // Delay von 500 ms
-                "-c", ".\\src\\main\\sumo\\" + szenario.folder + "\\sumo_setting.sumocfg",  // Konfigurationsdatei
+                "-c", ".\\src\\main\\sumo\\" + scenario.folder + "\\sumo_setting.sumocfg",  // Konfigurationsdatei
                 "--quit-on-end"
         }));
 
         System.out.println("Simulations-Initialisierung abgeschlossen");
     }
 
-    private static void stopSimulationAndSumo() {
+    private static void stopSimulation() {
         Simulation.close();
         System.out.println("Simulation beendet.");
     }

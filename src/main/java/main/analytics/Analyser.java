@@ -3,6 +3,7 @@ package main.analytics;
 import main.Main;
 import main.consensus.Consensus;
 import main.flocking.Flocking;
+import main.stauerkennung.Stauerkennung;
 import main.vehicle.Cache;
 import main.vehicle.SimVehicle;
 import main.vehicle.VehicleState;
@@ -24,7 +25,7 @@ public class Analyser {
     }
 
     public static void printAnalytics(){
-        System.out.println("Simuliertes Szenario: "+ Main.SIMULATION_SZENARIO);
+        System.out.println("Simuliertes Scenario: "+ Main.SIMULATION_SCENARIO);
         System.out.println("Flocking: "+ Main.SIMULATE_FLOCKING);
 
         Arrays.stream(VehicleState.values()).forEach(vehicleState -> {
@@ -45,11 +46,11 @@ public class Analyser {
         System.out.println("Durchschnittliche Zeit:"+vehicleResults.values().stream().filter(vehicleResult -> vehicleResult.getLastVehicleState() != VehicleState.COLLIDED).map(vehicleResult -> vehicleResult.getLastStep()-vehicleResult.getCreationStep()).mapToInt(Integer::intValue).average().getAsDouble());
         System.out.println("Durchschnittliche Zurückgelegte Distanz in Metern:"+vehicleResults.values().stream().filter(vehicleResult -> vehicleResult.getLastVehicleState() != VehicleState.COLLIDED).map(VehicleResult::getTraveledDistance).filter(d->d>0).mapToDouble(Double::doubleValue).average().getAsDouble());
         System.out.println("______________________________________________________________________");
-        writeAnalyticsToCSV();
+        writeAnalyticsToCsv();
     }
 
 
-    public static void writeAnalyticsToCSV() {
+    public static void writeAnalyticsToCsv() {
         String csvFile = "analytics.csv";
         File file = new File(csvFile);
         boolean fileExists = file.exists();
@@ -60,24 +61,42 @@ public class Analyser {
 
             // Wenn die Datei neu ist, Überschriften hinzufügen
             if (!fileExists) {
-                String header = "Version,Timestamp,Simuliertes Szenario,Steps,Flocking,Fertige Fahrzeuge,Emergency Brakes,Kollisionen,avg Zeit,avg Distanz in Metern,UNDER_DISTANCE,IN_DISTANCE,OUT_OF_DISTANCE,NO_LEADER,Flocking Config";
+                String header = "Version,Timestamp,Simuliertes Scenario,Steps,Flocking,Konsens,Fertige Fahrzeuge,Nicht fertige Fahrzeuge,Emergency Brakes,Kollisionen,min Zeit,avg Zeit,maxZeit,avg Distanz,sum Distanz,UNDER_DISTANCE,IN_DISTANCE,OUT_OF_DISTANCE,NO_LEADER,NEIGHBOR_RADIUS_FOR_TRAFFIC,FLOCKING_DEACTIVATION_COOLDOWN,MAX_MIN_DISTANCE_DIFF,COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE,COHESION_LANE_CHANGE_COOLDOWN,seperationPercentageWhenAligmentAcellarate";
                 writer.println(header);
             }
 
             // Daten sammeln
             String version = Main.version;
-            String simuliertesSzenario = Main.SIMULATION_SZENARIO.toString();
+            String simuliertesScenario = Main.SIMULATION_SCENARIO.toString();
             String flocking = String.valueOf(Main.SIMULATE_FLOCKING);
+
+            long nichtFertigeFahrzeuge = vehicleResults.values().stream()
+                    .filter(vehicleResult -> (vehicleResult.getLastVehicleState() != VehicleState.FINISHED && vehicleResult.getLastVehicleState() != VehicleState.COLLIDED))
+                    .count();
 
             long fertigeFahrzeuge = vehicleResults.values().stream()
                     .filter(vehicleResult -> vehicleResult.getLastVehicleState() == VehicleState.FINISHED)
                     .count();
 
             double durchschnittlicheZeit = vehicleResults.values().stream()
-                    .filter(vehicleResult -> vehicleResult.getLastVehicleState() != VehicleState.COLLIDED)
+                    .filter(vehicleResult -> vehicleResult.getLastVehicleState() == VehicleState.FINISHED)
                     .map(vehicleResult -> vehicleResult.getLastStep() - vehicleResult.getCreationStep())
                     .mapToInt(Integer::intValue)
                     .average()
+                    .orElse(0);
+
+            double minZeit = vehicleResults.values().stream()
+                    .filter(vehicleResult -> vehicleResult.getLastVehicleState() == VehicleState.FINISHED)
+                    .map(vehicleResult -> vehicleResult.getLastStep() - vehicleResult.getCreationStep())
+                    .mapToInt(Integer::intValue)
+                    .min()
+                    .orElse(0);
+
+            double maxZeit = vehicleResults.values().stream()
+                    .filter(vehicleResult -> vehicleResult.getLastVehicleState() == VehicleState.FINISHED)
+                    .map(vehicleResult -> vehicleResult.getLastStep() - vehicleResult.getCreationStep())
+                    .mapToInt(Integer::intValue)
+                    .max()
                     .orElse(0);
 
             double durchschnittlicheDistanz = vehicleResults.values().stream()
@@ -88,23 +107,42 @@ public class Analyser {
                     .average()
                     .orElse(0);
 
+            double summierteDistanz = vehicleResults.values().stream()
+                    .filter(vehicleResult -> vehicleResult.getLastVehicleState() != VehicleState.COLLIDED)
+                    .map(VehicleResult::getTraveledDistance)
+                    .filter(d -> d > 0)
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+
             // Datenzeile erstellen
             StringBuilder sb = new StringBuilder();
             sb.append(version).append(',');
             sb.append(LocalDateTime.now()).append(',');
-            sb.append(simuliertesSzenario).append(',');
+            sb.append(simuliertesScenario).append(',');
             sb.append(Main.step).append(',');
             sb.append(flocking).append(',');
+            sb.append(Main.SIMULATE_CONSENSUS).append(',');
             sb.append(fertigeFahrzeuge).append(',');
+            sb.append(nichtFertigeFahrzeuge).append(',');
             sb.append(vehicleResults.values().stream().mapToInt(VehicleResult::getEmergencyBrakes).sum()).append(',');
             sb.append(Cache.collisions.size()).append(',');
+            sb.append(minZeit).append(',');
             sb.append(durchschnittlicheZeit).append(',');
+            sb.append(maxZeit).append(',');
             sb.append(durchschnittlicheDistanz).append(',');
+            sb.append(summierteDistanz).append(',');
             sb.append(getAnalysisOfState(VehicleState.UNDER_DISTANCE)).append(',');
             sb.append(getAnalysisOfState(VehicleState.IN_DISTANCE)).append(',');
             sb.append(getAnalysisOfState(VehicleState.OUT_OF_DISTANCE)).append(',');
             sb.append(getAnalysisOfState(VehicleState.NO_LEADER)).append(',');
-            sb.append("Radius: "+ Consensus.NEIGHBOR_RADIUS_FOR_TRAFFIC+" "+"Cooldown: "+Consensus.FLOCKING_DEACTIVATION_COOLDOWN+" MinNumber: "+Consensus.MINIMUM_NUMBER_OF_NEIGHBOURS_FOR_TRAFFIC+" Speed Perc: "+Consensus.MINIMUM_SPEED_PERCENTAGE_WITHOUT_TRAFFIC);
+
+
+            sb.append(Stauerkennung.NEIGHBOR_RADIUS_FOR_TRAFFIC).append(',');
+            sb.append(Consensus.FLOCKING_DEACTIVATION_COOLDOWN).append(',');
+            sb.append(Flocking.MAX_MIN_DISTANCE_DIFF ).append(',');
+            sb.append(Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE).append(',');
+            sb.append(Flocking.COHESION_LANE_CHANGE_COOLDOWN).append(',');
+            sb.append(Flocking.seperationPercentageWhenAligmentAcellarate);
 
 
 
