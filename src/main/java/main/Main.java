@@ -12,36 +12,138 @@ import java.util.List;
 
 public class Main {
     public static SimulationScenario SIMULATION_SCENARIO;
-    public static String version = "eval";
-    public static boolean SIMULATE_CONSENSUS = true;
-    public static boolean SIMULATE_FLOCKING = true;
+    public static String version = "validation";
+    public static boolean SIMULATE_CONSENSUS = false;
+    public static boolean SIMULATE_FLOCKING = false;
     public static final String SIMULATION_DELAY = "0";
-    public static final int SIMULATION_STEPS = 250;
+    public static int SIMULATION_STEPS = 2;
     public static int step;
 
     public static void main(String[] args) {
-        List<SimulationScenario> simulationScenarios = List.of(SimulationScenario.ENDE_VON_ZWEI_SPUREN);
+        List<SimulationScenario> simulationScenarios = List.of(SimulationScenario.DREISPURIGE_AUTOBAHN,SimulationScenario.LIEGENGEBLIEBENES_FAHRZEUG,SimulationScenario.ENDE_EINER_SPUR,SimulationScenario.ENDE_VON_ZWEI_SPUREN);
 
-        for (Stauerkennung.NEIGHBOR_RADIUS_FOR_TRAFFIC = 40; Stauerkennung.NEIGHBOR_RADIUS_FOR_TRAFFIC <= 60; Stauerkennung.NEIGHBOR_RADIUS_FOR_TRAFFIC += 10) {
-            for (Consensus.FLOCKING_DEACTIVATION_COOLDOWN = 20; Consensus.FLOCKING_DEACTIVATION_COOLDOWN <= 80; Consensus.FLOCKING_DEACTIVATION_COOLDOWN += 20) {
-                for (Flocking.MAX_MIN_DISTANCE_DIFF = 1.2; Flocking.MAX_MIN_DISTANCE_DIFF <= 1.8; Flocking.MAX_MIN_DISTANCE_DIFF += 0.2) {
-                    for (Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE = 1.2; Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE <= 1.8; Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE += 0.2) {
-                        for (Flocking.COHESION_LANE_CHANGE_COOLDOWN = 10; Flocking.COHESION_LANE_CHANGE_COOLDOWN <= 30; Flocking.COHESION_LANE_CHANGE_COOLDOWN += 10) {
-                            for (Flocking.seperationPercentageWhenAligmentAcellarate = 0.2; Flocking.seperationPercentageWhenAligmentAcellarate <= 0.8; Flocking.seperationPercentageWhenAligmentAcellarate += 0.2) {
-                                SIMULATE_FLOCKING = true;
-                                SIMULATE_CONSENSUS = true;
-                                SIMULATION_SCENARIO = simulationScenarios.getFirst();
-                                try {
-                                    simulateScenario(simulationScenarios.getFirst());
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    }
-                }
+        Stauerkennung.NEIGHBOR_RADIUS_FOR_TRAFFIC = 60;
+        Consensus.FLOCKING_DEACTIVATION_COOLDOWN = 60;
+        Flocking.MAX_MIN_DISTANCE_DIFF = 1.4;
+        Flocking.COHESION_MINIMUM_UTILIZATION_OFFSET_ON_NEW_LANE = 1.4;
+        Flocking.COHESION_LANE_CHANGE_COOLDOWN = 10;
+        Flocking.seperationPercentageWhenAligmentAcellarate = 0.8;
+
+
+        simulationScenarios.forEach(simulationScenario -> {
+            SIMULATE_CONSENSUS = false;
+            SIMULATE_FLOCKING = false;
+            SIMULATION_SCENARIO = simulationScenario;
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            SIMULATE_FLOCKING=true;
+
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            SIMULATE_CONSENSUS = true;
+
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        SIMULATION_STEPS = 3;
+        simulationScenarios.forEach(simulationScenario -> {
+            SIMULATE_CONSENSUS = false;
+            SIMULATE_FLOCKING = false;
+            SIMULATION_SCENARIO = simulationScenario;
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            SIMULATE_FLOCKING=true;
+
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            SIMULATE_CONSENSUS = true;
+
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                simulateScenario(SIMULATION_SCENARIO);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+
     }
 
     public static void simulateScenario(SimulationScenario scenario) {

@@ -46,12 +46,51 @@ public class Analyser {
         System.out.println("Durchschnittliche Zeit:"+vehicleResults.values().stream().filter(vehicleResult -> vehicleResult.getLastVehicleState() != VehicleState.COLLIDED).map(vehicleResult -> vehicleResult.getLastStep()-vehicleResult.getCreationStep()).mapToInt(Integer::intValue).average().getAsDouble());
         System.out.println("Durchschnittliche Zurückgelegte Distanz in Metern:"+vehicleResults.values().stream().filter(vehicleResult -> vehicleResult.getLastVehicleState() != VehicleState.COLLIDED).map(VehicleResult::getTraveledDistance).filter(d->d>0).mapToDouble(Double::doubleValue).average().getAsDouble());
         System.out.println("______________________________________________________________________");
+        writeVehicleResultsToCsv();
         writeAnalyticsToCsv();
     }
 
+    public static void writeVehicleResultsToCsv(){
+        String csvFile = Main.SIMULATION_SCENARIO+"_"+Main.SIMULATE_FLOCKING+"_"+Main.SIMULATE_CONSENSUS+"_"+Main.SIMULATION_STEPS+".csv";
+        File file = new File(csvFile);
+        boolean fileExists = file.exists();
+
+        try (FileWriter fw = new FileWriter(file, true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter writer = new PrintWriter(bw)) {
+
+            // Wenn die Datei neu ist, Überschriften hinzufügen
+            if (!fileExists) {
+                String header = "vehicleId, time, type, last state, creationStep, lastStep, traveledDistance, emergencyBrakes";
+                writer.println(header);
+            }
+
+            vehicleResults.values().forEach(vehicleResult->{
+                // Datenzeile erstellen
+                StringBuilder sb = new StringBuilder();
+                sb.append(vehicleResult.getVehicleId()).append(',');;
+                sb.append(vehicleResult.getLastStep()-vehicleResult.getCreationStep()).append(',');;
+                sb.append(vehicleResult.getVehicleId().startsWith("normal") ? "Car" : "Truck").append(',');;
+                sb.append(vehicleResult.getLastVehicleState()).append(',');;
+                sb.append(vehicleResult.getCreationStep()).append(',');;
+                sb.append(vehicleResult.getLastStep()).append(',');;
+                sb.append(vehicleResult.getTraveledDistance()).append(',');;
+                sb.append(vehicleResult.getEmergencyBrakes()).append(',');;
+
+
+                // Datenzeile schreiben
+                writer.println(sb.toString());
+            });
+
+            System.out.println("Analysedaten wurden zur Datei " + csvFile + " hinzugefügt.");
+
+        } catch (IOException e) {
+            System.out.println("Fehler beim Schreiben der CSV-Datei: " + e.getMessage());
+        }
+    }
 
     public static void writeAnalyticsToCsv() {
-        String csvFile = "analytics.csv";
+        String csvFile = "validation_"+Main.SIMULATION_STEPS+".csv";
         File file = new File(csvFile);
         boolean fileExists = file.exists();
 
