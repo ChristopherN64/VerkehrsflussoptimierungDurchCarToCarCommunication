@@ -16,7 +16,7 @@ public class Main {
     public static boolean SIMULATE_CONSENSUS = false;
     public static boolean SIMULATE_FLOCKING = false;
     public static final String SIMULATION_DELAY = "0";
-    public static int SIMULATION_STEPS = 2;
+    public static int SIMULATION_STEPS = 600;
     public static int step;
 
     public static void main(String[] args) {
@@ -86,7 +86,7 @@ public class Main {
             }
         });
 
-        SIMULATION_STEPS = 3;
+        SIMULATION_STEPS = 1200;
         simulationScenarios.forEach(simulationScenario -> {
             SIMULATE_CONSENSUS = false;
             SIMULATE_FLOCKING = false;
